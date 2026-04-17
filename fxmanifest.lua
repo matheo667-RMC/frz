@@ -28,4 +28,5 @@ files {
     'html/style.css',
     'html/app.js',
     'html/welcome_fr.ogg',
+    'html/plane_landing.ogg',
 }

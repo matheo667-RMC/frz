@@ -1,4 +1,4 @@
--- FRZ RP - orchestrateur client (cinematique d'arrivee)
+-- FRZ RP - orchestrateur client (cinematique d'arrivee a LSIA)
 FrzSpawn = FrzSpawn or {}
 
 local introPlayed   = false
@@ -31,12 +31,22 @@ local function fadeIn(ms)
     DoScreenFadeIn(ms or 800)
 end
 
+-- Declenche le son d'atterrissage apres un delai, dans un thread separe
+-- pour ne pas bloquer la timeline principale de la cinematique.
+local function scheduleLandingSound(delayMs)
+    CreateThread(function()
+        Wait(delayMs or 7000)
+        FrzSpawn.playPlaneLandingSound()
+    end)
+end
+
 function FrzSpawn.playIntro()
-    -- Evite tout double declenchement (event recu deux fois, resource reset, etc.).
+    -- Empeche tout double declenchement (event recu deux fois, etc.).
     if introPlayed or introRunning then return end
     introRunning = true
     introPlayed = true
 
+    -- 1. Fade out, prep du joueur (invisible, fige, teleporte au terminal).
     fadeOut(500)
 
     local ped = PlayerPedId()
@@ -46,6 +56,7 @@ function FrzSpawn.playIntro()
 
     teleportToAirport()
 
+    -- 2. Spawn de l'avion en approche + camera cinematique.
     local plane, pilot = FrzSpawn.spawnPlane()
 
     FrzSpawn.createCam(Config.CameraPosition, Config.CameraRotation)
@@ -53,17 +64,29 @@ function FrzSpawn.playIntro()
         FrzSpawn.pointCamAtEntity(plane)
     end
 
+    -- 3. Fade in sur la scene cinematique.
     fadeIn(1000)
 
-    -- Le joueur regarde l'avion atterrir depuis la camera cinematique.
-    Wait(Config.CinematicDuration)
+    -- 4. Title card "FRZ RP - Los Santos International Airport".
+    FrzSpawn.showTitleCard(Config.TitleCardMain, Config.TitleCardSub)
 
-    -- Fin de la cinematique : fade out, on cache l'avion et la camera,
-    -- puis fade in sur le joueur devant le terminal.
+    -- 5. Programme le son d'atterrissage pour le moment ou l'avion touche la piste.
+    scheduleLandingSound(Config.LandingSoundDelay or 7500)
+
+    -- 6. Laisse le title card visible un moment puis le masque.
+    Wait(Config.TitleCardDuration or 3000)
+    FrzSpawn.hideTitleCard()
+
+    -- 7. Continue la cinematique jusqu'a la fin.
+    local remaining = (Config.CinematicDuration or 12000) - (Config.TitleCardDuration or 3000)
+    if remaining > 0 then Wait(remaining) end
+
+    -- 8. Fin de la cinematique : fade out, cleanup.
     fadeOut(600)
 
     FrzSpawn.cleanupPlane(plane, pilot)
     FrzSpawn.destroyCam()
+    FrzSpawn.stopPlaneLandingSound()
 
     SetEntityVisible(ped, true, false)
     FreezeEntityPosition(ped, false)
@@ -71,25 +94,23 @@ function FrzSpawn.playIntro()
 
     fadeIn(800)
 
-    -- Petit temps d'arret avant de lancer l'annonce (simule l'arrivee dans le hall).
+    -- 9. Petit temps d'arret puis annonce vocale + banniere.
     Wait(500)
-
-    -- Annonce "gare/aeroport" : jingle + voix formelle + banniere.
     FrzSpawn.showAnnouncement(Config.WelcomeMessage, Config.WelcomeSubtitle, true)
 
-    Wait(Config.AnnouncementDuration)
+    Wait(Config.AnnouncementDuration or 17000)
     FrzSpawn.hideAnnouncement()
 
     introRunning = false
 end
 
 function FrzSpawn.playWelcomeBack()
-    -- Si l'intro complete tourne deja, on ne superpose pas la banniere "welcome back".
+    -- Evite de superposer avec une intro en cours et les re-emissions d'event.
     if introRunning or introPlayed or welcomePlayed then return end
     welcomePlayed = true
 
     FrzSpawn.showAnnouncement(Config.WelcomeBackMessage, Config.WelcomeSubtitle, false)
-    Wait(Config.AnnouncementDuration)
+    Wait(Config.AnnouncementDuration or 17000)
     FrzSpawn.hideAnnouncement()
 end
 
@@ -102,8 +123,7 @@ RegisterNetEvent('frz-rp-spawn:playWelcomeBack', function()
 end)
 
 -- Demande au serveur quelle scene jouer des que le joueur est pret.
--- On utilise un flag local pour ne pas re-emettre la requete si la ressource est redemarree
--- en cours de session (ex: /restart frz-rp-spawn par un admin).
+-- Flag local pour eviter de re-emettre sur restart de ressource en cours de session.
 local introRequested = false
 CreateThread(function()
     while not NetworkIsPlayerActive(PlayerId()) do Wait(250) end

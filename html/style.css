@@ -60,3 +60,60 @@ html, body {
     opacity: 0.85;
     letter-spacing: 0.05em;
 }
+
+/* ---------- Title card (shown at the beginning of the cinematic) ---------- */
+#title-card {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    text-align: center;
+    padding: 40px 80px;
+    opacity: 0;
+    transition: opacity 900ms ease, transform 900ms cubic-bezier(.2,.8,.2,1);
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.85);
+}
+
+#title-card.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+#title-card.hidden {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+}
+
+.title-card-logo {
+    font-size: 18px;
+    letter-spacing: 0.8em;
+    color: #b199ff;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    font-weight: 600;
+}
+
+.title-card-main {
+    font-size: 82px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #ffffff;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+}
+
+.title-card-sub {
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    color: #e8e8ff;
+    opacity: 0.95;
+    text-transform: uppercase;
+}
+
+.title-card-line {
+    margin: 24px auto 0;
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #b199ff 50%, transparent 100%);
+}

@@ -2,44 +2,92 @@
     const banner = document.getElementById('banner');
     const titleEl = document.getElementById('banner-title');
     const subtitleEl = document.getElementById('banner-subtitle');
-    const audio = document.getElementById('welcome-audio');
+    const welcomeAudio = document.getElementById('welcome-audio');
 
-    function show(title, subtitle, playAudio) {
+    const titleCard = document.getElementById('title-card');
+    const titleCardMain = document.getElementById('title-card-main');
+    const titleCardSub = document.getElementById('title-card-sub');
+
+    const planeAudio = document.getElementById('plane-audio');
+
+    function showBanner(title, subtitle, playAudio) {
         if (title) titleEl.textContent = title;
         if (subtitle) subtitleEl.textContent = subtitle;
         banner.classList.remove('hidden');
-        // Force reflow to re-trigger the transition when re-shown quickly.
         void banner.offsetWidth;
         banner.classList.add('visible');
 
-        if (playAudio && audio) {
+        if (playAudio && welcomeAudio) {
             try {
-                audio.currentTime = 0;
-                audio.volume = 0.9;
-                const p = audio.play();
+                welcomeAudio.currentTime = 0;
+                welcomeAudio.volume = 0.95;
+                const p = welcomeAudio.play();
                 if (p && typeof p.catch === 'function') {
                     p.catch(function () { /* autoplay blocked, ignore */ });
                 }
-            } catch (e) {
-                /* ignore */
-            }
+            } catch (e) { /* ignore */ }
         }
     }
 
-    function hide() {
+    function hideBanner() {
         banner.classList.remove('visible');
         banner.classList.add('hidden');
-        if (audio) {
-            try { audio.pause(); } catch (e) { /* ignore */ }
+        if (welcomeAudio) {
+            try { welcomeAudio.pause(); } catch (e) { /* ignore */ }
         }
+    }
+
+    function showTitleCard(main, sub) {
+        if (main) titleCardMain.textContent = main;
+        if (sub) titleCardSub.textContent = sub;
+        titleCard.classList.remove('hidden');
+        void titleCard.offsetWidth;
+        titleCard.classList.add('visible');
+    }
+
+    function hideTitleCard() {
+        titleCard.classList.remove('visible');
+        titleCard.classList.add('hidden');
+    }
+
+    function playPlaneLanding() {
+        if (!planeAudio) return;
+        try {
+            planeAudio.currentTime = 0;
+            planeAudio.volume = 0.85;
+            const p = planeAudio.play();
+            if (p && typeof p.catch === 'function') {
+                p.catch(function () { /* autoplay blocked, ignore */ });
+            }
+        } catch (e) { /* ignore */ }
+    }
+
+    function stopPlaneLanding() {
+        if (!planeAudio) return;
+        try { planeAudio.pause(); } catch (e) { /* ignore */ }
     }
 
     window.addEventListener('message', function (event) {
         const data = event.data || {};
-        if (data.action === 'show') {
-            show(data.title, data.subtitle, data.playAudio);
-        } else if (data.action === 'hide') {
-            hide();
+        switch (data.action) {
+            case 'show':
+                showBanner(data.title, data.subtitle, data.playAudio);
+                break;
+            case 'hide':
+                hideBanner();
+                break;
+            case 'showTitle':
+                showTitleCard(data.title, data.subtitle);
+                break;
+            case 'hideTitle':
+                hideTitleCard();
+                break;
+            case 'planeLanding':
+                playPlaneLanding();
+                break;
+            case 'stopPlaneLanding':
+                stopPlaneLanding();
+                break;
         }
     });
 })();

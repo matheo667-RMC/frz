@@ -30,14 +30,15 @@ function FrzSpawn.spawnPlane()
 
     SetEntityAsMissionEntity(plane, true, true)
     SetVehicleEngineOn(plane, true, true, false)
-    SetVehicleForwardSpeed(plane, 80.0)
+    SetVehicleForwardSpeed(plane, Config.PlaneSpeed or 55.0)
     SetVehicleLandingGear(plane, 0)
     SetVehicleLights(plane, 2)
+    -- Evite que l'avion ait un roll/pitch bizarre au spawn.
+    SetEntityRotation(plane, -3.0, 0.0, s.w, 2, true)
 
     local pilotModel = loadModel(Config.PilotModel, 5000)
     local pilot = nil
     if pilotModel then
-        -- pedType 4 = PED_TYPE_CIVMALE ; isNetwork = false (meme raison que l'avion).
         pilot = CreatePedInsideVehicle(plane, 4, pilotModel, -1, false, false)
         if DoesEntityExist(pilot) then
             SetEntityAsMissionEntity(pilot, true, true)
@@ -48,7 +49,6 @@ function FrzSpawn.spawnPlane()
             local rs = Config.RunwayStart
             local re = Config.RunwayEnd
             TaskPlaneLand(pilot, plane, rs.x, rs.y, rs.z, re.x, re.y, re.z)
-            -- SetPedKeepTask doit etre appele APRES le task pour qu'il soit conserve.
             SetPedKeepTask(pilot, true)
         end
         SetModelAsNoLongerNeeded(pilotModel)
