@@ -19,7 +19,6 @@ CreateThread(function()
     Wait(5000)
 
     local interval = Config.PositionSaveInterval or 20000
-    local lastSent = 0
     local lastPos  = nil
 
     while true do
@@ -40,7 +39,6 @@ CreateThread(function()
                     h = heading,
                 })
                 lastPos = { x = coords.x, y = coords.y, z = coords.z }
-                lastSent = GetGameTimer()
             end
         end
     end

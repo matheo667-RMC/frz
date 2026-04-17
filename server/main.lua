@@ -240,12 +240,6 @@ function FrzMoney_LicenseOfSource(src)
     return licenseOfSource(src)
 end
 
-function FrzMoney_GetByPlayerId(src)
-    local id = licenseOfSource(src)
-    if not id then return 0 end
-    return FrzMoney_Get(id)
-end
-
 -- Le client demande quoi jouer (cinematique ou welcome back) des qu'il est pret.
 RegisterNetEvent('frz-rp-spawn:requestIntro', function()
     local src = source

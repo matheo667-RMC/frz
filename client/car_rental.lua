@@ -7,6 +7,23 @@ FrzSpawn = FrzSpawn or {}
 local dealerPed = nil
 local menuOpen  = false
 
+-- Mapping des codes de controle GTA vers une etiquette lisible (touche physique
+-- usuelle sur clavier QWERTY, pour affichage dans le prompt 3D).
+local CONTROL_LABEL = {
+    [23]  = 'F',        -- INPUT_ENTER
+    [38]  = 'E',        -- INPUT_PICKUP
+    [47]  = 'G',        -- INPUT_DETONATE
+    [51]  = 'E',        -- INPUT_CONTEXT
+    [74]  = 'H',        -- INPUT_VEH_HEADLIGHT
+    [86]  = 'Q',        -- INPUT_VEH_HORN
+    [246] = 'R',        -- INPUT_REPLAY_RECORDING
+    [311] = 'K',        -- INPUT_REPLAY_START_STOP_RECORDING
+}
+
+local function controlLabel(controlId)
+    return CONTROL_LABEL[controlId] or tostring(controlId)
+end
+
 local function loadModel(modelName, timeoutMs)
     local model = type(modelName) == 'string' and GetHashKey(modelName) or modelName
     RequestModel(model)
@@ -114,7 +131,7 @@ CreateThread(function()
                 sleep = 0
                 if d < maxDist and not menuOpen then
                     drawText3D(pedCoords.x, pedCoords.y, pedCoords.z + 1.1,
-                        '~y~[E]~w~ Parler au vendeur')
+                        '~y~[' .. controlLabel(interactionKey) .. ']~w~ Parler au vendeur')
                     if IsControlJustReleased(0, interactionKey) then
                         openMenu()
                     end
@@ -171,6 +188,8 @@ RegisterNetEvent('frz-rp-spawn:rentalResult', function(result)
             msg = 'Fonds insuffisants (solde : ' .. (result.newBalance or 0) .. ' $).'
         elseif result.reason == 'unknown_model' then
             msg = 'Ce modele n est pas dispo.'
+        elseif result.reason == 'too_far' then
+            msg = 'Tu es trop loin du vendeur.'
         end
         -- Notifie via la NUI pour rester dans le menu (sans le fermer).
         SendNUIMessage({ action = 'rentalError', message = msg, balance = result.newBalance or 0 })
