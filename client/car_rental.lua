@@ -4,8 +4,10 @@
 
 FrzSpawn = FrzSpawn or {}
 
-local dealerPed = nil
-local menuOpen  = false
+local dealerPed      = nil
+local menuOpen       = false
+local lastOpenRequest = 0   -- anti-spam + recuperation si le serveur ne repond pas
+local OPEN_COOLDOWN  = 1000 -- ms entre deux tentatives d'ouverture
 
 -- Mapping des codes de controle GTA vers une etiquette lisible (touche physique
 -- usuelle sur clavier QWERTY, pour affichage dans le prompt 3D).
@@ -94,8 +96,15 @@ local function drawText3D(x, y, z, text)
 end
 
 local function openMenu()
+    -- Ne PAS mettre menuOpen = true ici : le serveur peut silencieusement
+    -- ignorer la demande (ex : check de proximite cote serveur echoue a cause
+    -- d'un decalage de sync). Si on le mettait a true sans confirmation, le
+    -- joueur serait bloque (prompt masque, menu invisible car jamais affiche).
+    -- On se fie a l'event `showRentalMenu` pour passer a true.
     if menuOpen then return end
-    menuOpen = true
+    local now = GetGameTimer()
+    if now - lastOpenRequest < OPEN_COOLDOWN then return end
+    lastOpenRequest = now
     TriggerServerEvent('frz-rp-spawn:openRentalMenu')
 end
 
@@ -157,6 +166,7 @@ end)
 
 -- Reception : le serveur a autorise l'ouverture du menu.
 RegisterNetEvent('frz-rp-spawn:showRentalMenu', function(balance, vehicles)
+    menuOpen = true
     SendNUIMessage({
         action = 'showRental',
         balance = balance or 0,
