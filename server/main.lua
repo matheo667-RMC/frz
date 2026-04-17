@@ -3,7 +3,9 @@
 -- ne l'exposent pas. On passe par SaveResourceFile / LoadResourceFile qui est disponible
 -- partout et qui s'ecrit dans le dossier de la ressource.
 
-local DATA_FILE = 'data/joined_players.json'
+-- Chemin PLAT (sans sous-dossier) : SaveResourceFile ne cree pas de dossier parent
+-- et echouerait silencieusement si 'data/' n'existait pas.
+local DATA_FILE = 'joined_players.json'
 local joinedPlayers = nil
 
 local function getResource()
@@ -33,7 +35,10 @@ local function saveJoinedPlayers()
         print('[frz-rp-spawn] Erreur d encodage JSON, sauvegarde annulee.')
         return
     end
-    SaveResourceFile(getResource(), DATA_FILE, encoded, -1)
+    local saved = SaveResourceFile(getResource(), DATA_FILE, encoded, -1)
+    if not saved then
+        print('[frz-rp-spawn] SaveResourceFile a echoue (' .. DATA_FILE .. '). Verifie les droits en ecriture sur le dossier de la ressource.')
+    end
 end
 
 local function hasJoinedBefore(id)
