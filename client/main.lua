@@ -88,6 +88,10 @@ function FrzSpawn.playIntro()
     FrzSpawn.destroyCam()
     FrzSpawn.stopPlaneLandingSound()
 
+    -- Re-resolution du ped : le handle capture en debut de fonction peut etre
+    -- stale apres ~15 s (changement de modele par un autre script, respawn, etc.).
+    -- Sans ca, le joueur resterait fige/invisible/invincible sur un handle mort.
+    ped = PlayerPedId()
     SetEntityVisible(ped, true, false)
     FreezeEntityPosition(ped, false)
     SetEntityInvincible(ped, false)
