@@ -3,9 +3,19 @@
 
 Config = {}
 
--- Coordonnees de spawn final du joueur (a l'interieur du terminal LSIA).
--- Format : vector4(x, y, z, heading)
-Config.SpawnCoords = vector4(-1037.5, -2738.0, 20.17, 328.0)
+-- Coordonnees de spawn final du joueur (devant les portes du terminal LSIA).
+-- Format : vector4(x, y, z, heading). Utilise uniquement lors du premier join
+-- quand aucune derniere position n'est sauvegardee.
+Config.SpawnCoords = vector4(-1034.6, -2733.6, 20.17, 327.0)
+
+-- Intervalle (en ms) auquel le client envoie sa position au serveur pour sauvegarde.
+-- Mise a jour frequente = couverture en cas de crash, mais plus de traffic reseau.
+Config.PositionSaveInterval = 20000
+
+-- Si true, le joueur est teleporte a sa derniere position connue apres la banniere
+-- "bon retour" (comportement demande : on reapparait la ou on s'est deconnecte).
+-- Si aucune position n'est sauvegardee, on ne teleporte pas (spawn par defaut).
+Config.RestoreLastPosition = true
 
 -- Modele de l'avion qui atterrit (private jet Luxor Deluxe par defaut).
 -- Autres bons choix : 'luxor', 'nimbus', 'jet', 'titan'
