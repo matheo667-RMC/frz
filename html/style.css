@@ -11,54 +11,58 @@ html, body {
     pointer-events: none;
 }
 
+/* Small banner anchored in the top-left corner */
 #banner {
     position: fixed;
-    bottom: 8%;
-    left: 50%;
-    transform: translateX(-50%) translateY(40px);
-    min-width: 520px;
-    max-width: 80vw;
-    padding: 22px 42px;
-    text-align: center;
+    top: 20px;
+    left: 20px;
+    min-width: 0;
+    max-width: 340px;
+    padding: 12px 18px;
+    text-align: left;
     background: linear-gradient(135deg, rgba(0,0,0,0.82) 0%, rgba(25,25,25,0.78) 100%);
     border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 14px;
-    box-shadow: 0 18px 60px rgba(0,0,0,0.65), 0 0 0 1px rgba(120,80,255,0.35) inset;
-    backdrop-filter: blur(8px);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 0 1px rgba(120,80,255,0.30) inset;
+    backdrop-filter: blur(6px);
     opacity: 0;
-    transition: opacity 600ms ease, transform 600ms cubic-bezier(.2,.8,.2,1);
+    transform: translateX(-20px);
+    transition: opacity 500ms ease, transform 500ms cubic-bezier(.2,.8,.2,1);
 }
 
 #banner.visible {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateX(0);
 }
 
 #banner.hidden {
     opacity: 0;
-    transform: translateX(-50%) translateY(40px);
+    transform: translateX(-20px);
 }
 
 .logo {
-    font-size: 14px;
-    letter-spacing: 0.6em;
+    font-size: 10px;
+    letter-spacing: 0.4em;
     color: #b199ff;
-    margin-bottom: 6px;
+    margin-bottom: 3px;
     text-transform: uppercase;
+    font-weight: 600;
 }
 
 .title {
-    font-size: 30px;
+    font-size: 16px;
     font-weight: 700;
-    margin-bottom: 6px;
-    letter-spacing: 0.02em;
+    margin-bottom: 2px;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
 }
 
 .subtitle {
-    font-size: 16px;
+    font-size: 12px;
     font-weight: 400;
     opacity: 0.85;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.03em;
+    line-height: 1.2;
 }
 
 /* ---------- Title card (shown at the beginning of the cinematic) ---------- */

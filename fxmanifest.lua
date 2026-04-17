@@ -15,6 +15,7 @@ client_scripts {
     'client/camera.lua',
     'client/announcement.lua',
     'client/main.lua',
+    'client/position_tracker.lua',
 }
 
 server_scripts {
