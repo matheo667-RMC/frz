@@ -69,3 +69,40 @@ Config.AlwaysPlayIntro = false
 -- Prefixe utilise pour stocker l'etat "deja joue" (conserve pour compat,
 -- mais la persistance passe desormais par html/joined_players.json - voir server/main.lua).
 Config.KvpPrefix = 'frz-rp-spawn:joined:'
+
+-- ============================================================================
+-- Location / vente de voitures (vendeur PNJ pres du terminal)
+-- ============================================================================
+Config.CarRental = {
+    enabled = true,
+
+    -- Somme de depart (GTA $) creditee a chaque nouveau joueur au premier join.
+    startingCash = 1000,
+
+    -- Position du PNJ vendeur (pres du poteau du terminal, cote route).
+    pedPos = vector4(-1031.5, -2731.5, 20.17, 145.0),
+
+    -- Modele du PNJ. Exemples : 's_m_m_lsmetro_01' (employe LS Metro),
+    -- 'a_m_y_business_03' (businessman), 'ig_rashcosvki' (dealer).
+    pedModel = 's_m_m_lsmetro_01',
+
+    -- Point d'apparition de la voiture achetee (a cote du vendeur, sur la route).
+    spawnPos = vector4(-1048.0, -2734.0, 20.17, 240.0),
+
+    -- Distance (m) a laquelle le prompt d'interaction apparait.
+    interactionDistance = 2.5,
+
+    -- Touche d'interaction. 38 = E (code GTA control). Autres exemples : 51 = E,
+    -- Utilise IsControlJustReleased avec INPUT_PICKUP.
+    interactionKey = 38,
+
+    -- Liste des vehicules proposes. Prix 0 = gratuit.
+    vehicles = {
+        { label = 'Blista',     model = 'blista',     price = 0   },
+        { label = 'Asea',       model = 'asea',       price = 0   },
+        { label = 'Dilettante', model = 'dilettante', price = 0   },
+        { label = 'Fugitive',   model = 'fugitive',   price = 150 },
+        { label = 'Buffalo S',  model = 'buffalo',    price = 300 },
+        { label = 'Sultan',     model = 'sultan',     price = 500 },
+    },
+}

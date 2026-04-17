@@ -9,7 +9,8 @@
 --     "<license>": {
 --       "joined":   <timestamp premier join>,
 --       "lastPos":  { "x":..., "y":..., "z":..., "h":... } | nil,
---       "lastSeen": <timestamp dernier update>
+--       "lastSeen": <timestamp dernier update>,
+--       "money":    <number>  -- GTA $ du joueur (persiste entre les sessions)
 --     },
 --     ...
 --   }
@@ -95,8 +96,21 @@ end)
 local function getOrCreatePlayer(id)
     local data = loadPlayersData()
     if not data[id] then
-        data[id] = { joined = nil, lastPos = nil, lastSeen = os.time() }
+        local startingCash = (Config.CarRental and Config.CarRental.startingCash) or 0
+        data[id] = {
+            joined   = nil,
+            lastPos  = nil,
+            lastSeen = os.time(),
+            money    = startingCash,
+        }
         markDirty()
+    else
+        -- Migration pour les entrees creees avant l'ajout du champ 'money'.
+        if data[id].money == nil then
+            local startingCash = (Config.CarRental and Config.CarRental.startingCash) or 0
+            data[id].money = startingCash
+            markDirty()
+        end
     end
     return data[id]
 end
@@ -151,6 +165,45 @@ local function resetAll()
     flushNow()
 end
 
+-- ============================================================================
+-- Argent : helpers exposes globalement pour les autres scripts serveur
+-- (notamment server/car_rental.lua).
+-- ============================================================================
+
+function FrzMoney_Get(id)
+    if not id then return 0 end
+    local entry = getOrCreatePlayer(id)
+    return entry.money or 0
+end
+
+function FrzMoney_Set(id, amount)
+    if not id then return end
+    local entry = getOrCreatePlayer(id)
+    entry.money = math.max(0, math.floor(tonumber(amount) or 0))
+    markDirty()
+end
+
+function FrzMoney_Add(id, amount)
+    if not id or not amount then return end
+    local entry = getOrCreatePlayer(id)
+    entry.money = math.max(0, (entry.money or 0) + math.floor(amount))
+    markDirty()
+end
+
+-- Essaie de debiter `amount` au joueur. Retourne true si reussi, false sinon.
+function FrzMoney_TryDeduct(id, amount)
+    if not id or not amount then return false end
+    amount = math.floor(amount)
+    if amount < 0 then return false end
+    local entry = getOrCreatePlayer(id)
+    if (entry.money or 0) < amount then
+        return false
+    end
+    entry.money = entry.money - amount
+    markDirty()
+    return true
+end
+
 local function getPlayerLicense(src)
     local identifiers = { 'license2', 'license', 'steam', 'discord', 'fivem' }
     for _, idType in ipairs(identifiers) do
@@ -180,6 +233,17 @@ local function licenseOfSource(src)
         srcToLicense[src] = id
     end
     return id
+end
+
+-- Expose aussi globalement pour les autres scripts serveur.
+function FrzMoney_LicenseOfSource(src)
+    return licenseOfSource(src)
+end
+
+function FrzMoney_GetByPlayerId(src)
+    local id = licenseOfSource(src)
+    if not id then return 0 end
+    return FrzMoney_Get(id)
 end
 
 -- Le client demande quoi jouer (cinematique ou welcome back) des qu'il est pret.

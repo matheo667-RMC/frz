@@ -16,10 +16,12 @@ client_scripts {
     'client/announcement.lua',
     'client/main.lua',
     'client/position_tracker.lua',
+    'client/car_rental.lua',
 }
 
 server_scripts {
     'server/main.lua',
+    'server/car_rental.lua',
 }
 
 ui_page 'html/index.html'
