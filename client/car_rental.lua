@@ -190,6 +190,17 @@ RegisterNetEvent('frz-rp-spawn:rentalResult', function(result)
                 ('Vehicule %s livre %s. Solde : %d $')
                 :format(result.label or result.model, priceStr, result.newBalance or 0))
             EndTextCommandThefeedPostTicker(false, true)
+        else
+            -- Spawn client a echoue (timeout modele, limite entites, etc.).
+            -- On demande au serveur de rembourser si un paiement avait ete debite.
+            if result.price and result.price > 0 then
+                TriggerServerEvent('frz-rp-spawn:rentalSpawnFailed',
+                    result.model, result.price)
+                BeginTextCommandThefeedPost('STRING')
+                AddTextComponentSubstringPlayerName(
+                    ('Echec spawn. %d $ rembourses.'):format(result.price))
+                EndTextCommandThefeedPostTicker(false, true)
+            end
         end
     else
         -- Ferme le menu et affiche un message d'erreur.

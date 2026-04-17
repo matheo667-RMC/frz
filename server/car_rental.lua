@@ -101,6 +101,35 @@ RegisterNetEvent('frz-rp-spawn:rentVehicle', function(model)
     })
 end)
 
+-- Le client previent le serveur que le spawn cote client a echoue (timeout de
+-- chargement du modele, CreateVehicle qui renvoie 0, etc.). On rembourse le
+-- joueur pour eviter une perte d'argent silencieuse.
+--
+-- Securite : on ne rembourse que si le modele est bien dans la config et si
+-- le montant demande correspond au prix exact du vehicule (un client malveillant
+-- ne peut donc pas demander un remboursement arbitraire).
+RegisterNetEvent('frz-rp-spawn:rentalSpawnFailed', function(model, paidAmount)
+    if not isEnabled() then return end
+    local src = source
+    local id = FrzMoney_LicenseOfSource(src)
+    if not id then return end
+
+    local entry = findVehicle(model)
+    if not entry then return end
+
+    local expectedPrice = tonumber(entry.price) or 0
+    local claimed = tonumber(paidAmount) or 0
+    if expectedPrice <= 0 or claimed ~= expectedPrice then
+        return
+    end
+
+    FrzMoney_Add(id, expectedPrice)
+    local newBal = FrzMoney_Get(id)
+    TriggerClientEvent('frz-rp-spawn:moneyUpdate', src, newBal)
+    print(('[frz-rp-spawn] Remboursement %d $ (spawn echoue) -> %s = %d $'):format(
+        expectedPrice, id, newBal))
+end)
+
 -- ============================================================================
 -- Commandes admin (console serveur uniquement)
 -- ============================================================================
