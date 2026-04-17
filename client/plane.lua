@@ -21,7 +21,8 @@ function FrzSpawn.spawnPlane()
     end
 
     local s = Config.PlaneSpawn
-    local plane = CreateVehicle(planeModel, s.x, s.y, s.z, s.w, true, false)
+    -- isNetwork = false : la cinematique est locale au joueur, on ne sync pas l'avion sur le reseau.
+    local plane = CreateVehicle(planeModel, s.x, s.y, s.z, s.w, false, false)
     if not DoesEntityExist(plane) then
         SetModelAsNoLongerNeeded(planeModel)
         return nil, nil
@@ -36,16 +37,19 @@ function FrzSpawn.spawnPlane()
     local pilotModel = loadModel(Config.PilotModel, 5000)
     local pilot = nil
     if pilotModel then
-        pilot = CreatePedInsideVehicle(plane, 26, pilotModel, -1, true, false)
+        -- pedType 4 = PED_TYPE_CIVMALE ; isNetwork = false (meme raison que l'avion).
+        pilot = CreatePedInsideVehicle(plane, 4, pilotModel, -1, false, false)
         if DoesEntityExist(pilot) then
+            SetEntityAsMissionEntity(pilot, true, true)
             SetEntityInvincible(pilot, true)
             SetPedCanBeDraggedOut(pilot, false)
             SetBlockingOfNonTemporaryEvents(pilot, true)
-            SetPedKeepTask(pilot, true)
 
             local rs = Config.RunwayStart
             local re = Config.RunwayEnd
             TaskPlaneLand(pilot, plane, rs.x, rs.y, rs.z, re.x, re.y, re.z)
+            -- SetPedKeepTask doit etre appele APRES le task pour qu'il soit conserve.
+            SetPedKeepTask(pilot, true)
         end
         SetModelAsNoLongerNeeded(pilotModel)
     end

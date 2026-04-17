@@ -1,7 +1,9 @@
 -- FRZ RP - orchestrateur client (cinematique d'arrivee)
 FrzSpawn = FrzSpawn or {}
 
-local introPlayed = false
+local introPlayed   = false
+local introRunning  = false
+local welcomePlayed = false
 
 local function teleportToAirport()
     local ped = PlayerPedId()
@@ -30,7 +32,9 @@ local function fadeIn(ms)
 end
 
 function FrzSpawn.playIntro()
-    if introPlayed then return end
+    -- Evite tout double declenchement (event recu deux fois, resource reset, etc.).
+    if introPlayed or introRunning then return end
+    introRunning = true
     introPlayed = true
 
     fadeOut(500)
@@ -72,9 +76,15 @@ function FrzSpawn.playIntro()
     if remaining < 0 then remaining = 0 end
     Wait(remaining)
     FrzSpawn.hideAnnouncement()
+
+    introRunning = false
 end
 
 function FrzSpawn.playWelcomeBack()
+    -- Si l'intro complete tourne deja, on ne superpose pas la banniere "welcome back".
+    if introRunning or introPlayed or welcomePlayed then return end
+    welcomePlayed = true
+
     FrzSpawn.showAnnouncement(Config.WelcomeBackMessage, Config.WelcomeSubtitle, false)
     Wait(Config.AnnouncementDuration)
     FrzSpawn.hideAnnouncement()
@@ -89,9 +99,14 @@ RegisterNetEvent('frz-rp-spawn:playWelcomeBack', function()
 end)
 
 -- Demande au serveur quelle scene jouer des que le joueur est pret.
+-- On utilise un flag local pour ne pas re-emettre la requete si la ressource est redemarree
+-- en cours de session (ex: /restart frz-rp-spawn par un admin).
+local introRequested = false
 CreateThread(function()
     while not NetworkIsPlayerActive(PlayerId()) do Wait(250) end
     while not DoesEntityExist(PlayerPedId()) do Wait(250) end
+    if introRequested then return end
+    introRequested = true
     Wait(1000)
     TriggerServerEvent('frz-rp-spawn:requestIntro')
 end)
