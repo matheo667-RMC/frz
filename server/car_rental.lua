@@ -1,6 +1,14 @@
 -- FRZ RP - logique serveur pour la location de voitures au vendeur du terminal.
 -- Utilise les helpers d'argent exposes par server/main.lua (FrzMoney_*).
 
+-- Table des achats payants en attente de confirmation de spawn cote client.
+-- Permet de rembourser UNIQUEMENT si le joueur avait effectivement paye juste
+-- avant. Sinon un client malveillant pourrait spammer rentalSpawnFailed et
+-- generer de l'argent a l'infini.
+-- Structure : pendingRefunds[src] = { model, price, createdAt }
+local pendingRefunds = {}
+local PENDING_REFUND_TTL = 30000 -- ms avant que le token ne soit considere perime
+
 local function isEnabled()
     return Config.CarRental ~= nil and Config.CarRental.enabled == true
 end
@@ -95,6 +103,14 @@ RegisterNetEvent('frz-rp-spawn:rentVehicle', function(model)
         return
     end
 
+    -- Enregistre un token de remboursement : si le spawn cote client echoue
+    -- dans les PENDING_REFUND_TTL ms, on rembourse. Une seule fois.
+    pendingRefunds[src] = {
+        model = entry.model,
+        price = price,
+        createdAt = GetGameTimer(),
+    }
+
     TriggerClientEvent('frz-rp-spawn:rentalResult', src, {
         ok = true, model = entry.model, label = entry.label,
         price = price, newBalance = FrzMoney_Get(id),
@@ -105,29 +121,65 @@ end)
 -- chargement du modele, CreateVehicle qui renvoie 0, etc.). On rembourse le
 -- joueur pour eviter une perte d'argent silencieuse.
 --
--- Securite : on ne rembourse que si le modele est bien dans la config et si
--- le montant demande correspond au prix exact du vehicule (un client malveillant
--- ne peut donc pas demander un remboursement arbitraire).
+-- Securite : on ne rembourse que si un token de remboursement existe pour ce
+-- joueur (= il a reellement paye une voiture recemment), que le modele
+-- correspond, que le montant correspond, et qu'on n'a pas depasse le TTL. On
+-- consomme le token immediatement pour empecher les refunds en double.
 RegisterNetEvent('frz-rp-spawn:rentalSpawnFailed', function(model, paidAmount)
     if not isEnabled() then return end
     local src = source
     local id = FrzMoney_LicenseOfSource(src)
     if not id then return end
 
-    local entry = findVehicle(model)
-    if not entry then return end
+    local pending = pendingRefunds[src]
+    if not pending then return end
 
-    local expectedPrice = tonumber(entry.price) or 0
-    local claimed = tonumber(paidAmount) or 0
-    if expectedPrice <= 0 or claimed ~= expectedPrice then
+    -- Consomme le token immediatement : on le supprime avant toute verification
+    -- metier pour empecher tout double-call de bloquer sur le meme token.
+    pendingRefunds[src] = nil
+
+    -- TTL : si le token est trop vieux, on ne rembourse pas (joueur aurait pu
+    -- avoir eu le temps d'utiliser la voiture).
+    if GetGameTimer() - (pending.createdAt or 0) > PENDING_REFUND_TTL then
         return
     end
 
-    FrzMoney_Add(id, expectedPrice)
+    local claimed = tonumber(paidAmount) or 0
+    if pending.model ~= model or pending.price ~= claimed or pending.price <= 0 then
+        return
+    end
+
+    -- Verifie aussi que le modele est toujours dans la config (protection si
+    -- la config a ete hot-reload entre-temps).
+    local entry = findVehicle(model)
+    if not entry or (tonumber(entry.price) or 0) ~= pending.price then return end
+
+    FrzMoney_Add(id, pending.price)
     local newBal = FrzMoney_Get(id)
     TriggerClientEvent('frz-rp-spawn:moneyUpdate', src, newBal)
     print(('[frz-rp-spawn] Remboursement %d $ (spawn echoue) -> %s = %d $'):format(
-        expectedPrice, id, newBal))
+        pending.price, id, newBal))
+end)
+
+-- Si un achat succes (rentVehicle a envoye rentalResult.ok=true) n'est jamais
+-- confirme par le client dans les PENDING_REFUND_TTL ms, on considere que le
+-- spawn a reussi et on supprime le token silencieusement (= plus de refund
+-- possible).
+CreateThread(function()
+    while true do
+        Wait(10000)
+        local now = GetGameTimer()
+        for src, pending in pairs(pendingRefunds) do
+            if now - (pending.createdAt or 0) > PENDING_REFUND_TTL then
+                pendingRefunds[src] = nil
+            end
+        end
+    end
+end)
+
+-- Nettoyage a la deconnexion pour eviter de garder des tokens zombies.
+AddEventHandler('playerDropped', function()
+    pendingRefunds[source] = nil
 end)
 
 -- ============================================================================

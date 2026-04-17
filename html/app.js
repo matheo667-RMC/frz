@@ -74,6 +74,11 @@
     const rentalError = document.getElementById('rental-error');
     const rentalCloseBtn = document.getElementById('rental-close');
 
+    // Cache de la liste affichee pour pouvoir re-render les boutons quand le
+    // solde change (admin `frzgivemoney` en live, erreur serveur, etc.).
+    let currentVehicles = [];
+    let currentBalance = 0;
+
     function sendNui(name, payload) {
         try {
             fetch('https://' + (window.GetParentResourceName ? GetParentResourceName() : 'frz-rp-spawn') + '/' + name, {
@@ -85,7 +90,15 @@
     }
 
     function setBalance(v) {
-        if (rentalBalance) rentalBalance.textContent = String(v || 0);
+        currentBalance = Number(v) || 0;
+        if (rentalBalance) rentalBalance.textContent = String(currentBalance);
+    }
+
+    function refreshRentalButtons() {
+        // Re-render la liste avec l'etat actuel (solde) pour que les boutons
+        // "Fonds insuffisants" passent en "Louer" (ou l'inverse) apres un
+        // changement de solde en live.
+        renderRentalVehicles(currentVehicles, currentBalance);
     }
 
     function renderRentalVehicles(vehicles, balance) {
@@ -134,8 +147,9 @@
     }
 
     function showRental(balance, vehicles) {
+        currentVehicles = Array.isArray(vehicles) ? vehicles.slice() : [];
         setBalance(balance);
-        renderRentalVehicles(vehicles, balance);
+        renderRentalVehicles(currentVehicles, currentBalance);
         if (rentalError) {
             rentalError.textContent = '';
             rentalError.classList.add('hidden');
@@ -204,9 +218,11 @@
                 break;
             case 'rentalError':
                 showRentalError(data.message, data.balance);
+                refreshRentalButtons();
                 break;
             case 'rentalUpdateBalance':
                 setBalance(data.balance);
+                refreshRentalButtons();
                 break;
         }
     });
