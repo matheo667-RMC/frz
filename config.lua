@@ -30,11 +30,12 @@ Config.CameraRotation = vector3(-10.0, 0.0, 250.0)
 Config.CinematicDuration = 10000
 
 -- Duree d'affichage de la banniere d'annonce (ms).
-Config.AnnouncementDuration = 6000
+-- Doit etre >= duree du fichier audio 'html/welcome_fr.ogg' (~14 s).
+Config.AnnouncementDuration = 14000
 
 -- Textes affiches. Ne pas depasser ~60 caracteres par ligne.
-Config.WelcomeMessage     = 'Bienvenue sur FRZ RP'
-Config.WelcomeSubtitle    = 'Vous etes bien arrive a destination'
+Config.WelcomeMessage     = 'FRZ RP'
+Config.WelcomeSubtitle    = "Bienvenue a l'aeroport international de Los Santos"
 Config.WelcomeBackMessage = 'Content de vous revoir sur FRZ RP'
 
 -- Si true, la cinematique complete sera rejouee a chaque connexion (debug).

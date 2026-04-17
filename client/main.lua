@@ -55,12 +55,11 @@ function FrzSpawn.playIntro()
 
     fadeIn(1000)
 
+    -- Le joueur regarde l'avion atterrir depuis la camera cinematique.
     Wait(Config.CinematicDuration)
 
-    FrzSpawn.showAnnouncement(Config.WelcomeMessage, Config.WelcomeSubtitle, true)
-
-    Wait(3500)
-
+    -- Fin de la cinematique : fade out, on cache l'avion et la camera,
+    -- puis fade in sur le joueur devant le terminal.
     fadeOut(600)
 
     FrzSpawn.cleanupPlane(plane, pilot)
@@ -72,9 +71,13 @@ function FrzSpawn.playIntro()
 
     fadeIn(800)
 
-    local remaining = Config.AnnouncementDuration - 3500
-    if remaining < 0 then remaining = 0 end
-    Wait(remaining)
+    -- Petit temps d'arret avant de lancer l'annonce (simule l'arrivee dans le hall).
+    Wait(500)
+
+    -- Annonce "gare/aeroport" : jingle + voix formelle + banniere.
+    FrzSpawn.showAnnouncement(Config.WelcomeMessage, Config.WelcomeSubtitle, true)
+
+    Wait(Config.AnnouncementDuration)
     FrzSpawn.hideAnnouncement()
 
     introRunning = false
