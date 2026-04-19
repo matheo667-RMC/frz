@@ -3,10 +3,13 @@
 
 Config = {}
 
--- Coordonnees de spawn final du joueur (devant les portes du terminal LSIA).
+-- Coordonnees de spawn final du joueur : centre du rond en pave devant
+-- l'entree principale du terminal LSIA (entre les deux poteaux, cote route).
 -- Format : vector4(x, y, z, heading). Utilise uniquement lors du premier join
 -- quand aucune derniere position n'est sauvegardee.
-Config.SpawnCoords = vector4(-1034.6, -2733.6, 20.17, 327.0)
+-- Heading 157 = le joueur regarde vers la route (taxis / vendeur sur sa
+-- droite), cote par lequel il est "arrive" de l'avion.
+Config.SpawnCoords = vector4(-1037.5, -2738.0, 20.17, 157.0)
 
 -- Intervalle (en ms) auquel le client envoie sa position au serveur pour sauvegarde.
 -- Mise a jour frequente = couverture en cas de crash, mais plus de traffic reseau.
