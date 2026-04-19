@@ -237,17 +237,17 @@ RegisterNetEvent('frz-inventory:action', function(payload)
         local item = inv.grid[from]
         if not item then return end
         if not Config.ClothingSlots[slotKey_] then return end
-        -- Par simplicite : "equiper" transforme l'item en vetement actif avec drawable=count (hack)
-        -- Mieux : un champ "drawable"/"texture" encode dans le nom ; ici on simule avec drawable aleatoire.
         local drawable = item.drawable or math.random(0, 20)
         local texture = item.texture or 0
-        -- Remet l'ancien vetement dans l'inventaire (si il y en avait).
-        if inv.clothing[slotKey_] then
-            -- Rien a remettre : on considere les slots vetements comme appliquant uniquement
-            -- l'item d'inventaire (pas de double-stockage).
-        end
+        -- Si un vetement est deja equipe sur ce slot, on le remet dans le slot d'origine (from)
+        -- apres avoir libere celui-ci. Comme "from" devient libre, il accueille l'ancien vetement.
+        local previous = inv.clothing[slotKey_]
         inv.clothing[slotKey_] = { name = item.name, drawable = drawable, texture = texture }
-        inv.grid[from] = nil
+        if previous then
+            inv.grid[from] = { name = previous.name, count = 1, drawable = previous.drawable, texture = previous.texture }
+        else
+            inv.grid[from] = nil
+        end
         sendState(src)
     elseif t == 'unequip' then
         local slotKey_ = payload.slotKey

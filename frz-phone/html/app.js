@@ -42,10 +42,12 @@
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
   }
+  let toastTimer = null;
   function showToast(msg, type) {
     toast.textContent = msg;
     toast.className = `toast ${type || ''}`;
-    setTimeout(() => toast.classList.add('hidden'), 2500);
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.add('hidden'), 2500);
     toast.classList.remove('hidden');
   }
   function fmtEur(n) {

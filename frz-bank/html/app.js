@@ -26,10 +26,12 @@
     const d = new Date((ts || 0) * 1000);
     return d.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   }
+  let toastTimer = null;
   function showToast(msg, type) {
     toast.textContent = msg;
     toast.className = 'toast ' + (type || '');
-    setTimeout(() => toast.classList.add('hidden'), 2500);
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.add('hidden'), 2500);
     toast.classList.remove('hidden');
   }
   function makeEl(tag, opts, ...children) {

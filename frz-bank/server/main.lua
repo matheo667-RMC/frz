@@ -126,11 +126,15 @@ local function withdraw(src, amount)
     local id = getIdentifier(src)
     local a = ensureAccount(id)
     if a.balance < amount then return false, 'solde insuffisant' end
+    -- On debite seulement si le cash peut etre credite dans l'inventaire (si present).
+    if GetResourceState('frz-inventory') == 'started' then
+        local addOk, addRet = pcall(function() return exports['frz-inventory']:addItem(src, 'cash', amount) end)
+        if not addOk or addRet == false then
+            return false, 'inventaire plein'
+        end
+    end
     a.balance = a.balance - amount
     addTransaction(a, 'Retrait', -amount, 'withdraw')
-    if GetResourceState('frz-inventory') == 'started' then
-        pcall(function() exports['frz-inventory']:addItem(src, 'cash', amount) end)
-    end
     sendAccount(src)
     return true
 end

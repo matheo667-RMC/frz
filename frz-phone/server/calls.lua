@@ -93,6 +93,10 @@ RegisterNetEvent('frz-phone:call:start', function(targetNumber)
         if c.number == calleePhone.number then calleeName = c.name; break end
     end
 
+    -- On memorise les noms pour les reutiliser a l'etat connected.
+    CALLS[id].callerName = callerName
+    CALLS[id].calleeName = calleeName
+
     TriggerClientEvent('frz-phone:incomingCall', targetSrc, callerPhone.number, callerName)
     -- Etat "ringing" cote caller : evenement distinct de callConnected.
     TriggerClientEvent('frz-phone:outgoingCall', src, calleePhone.number, calleeName)
@@ -110,8 +114,8 @@ RegisterNetEvent('frz-phone:call:answer', function()
     local call = CALLS[callId]; if not call or call.state ~= 'ringing' then return end
     call.state = 'active'
     call.connectedAt = os.time()
-    TriggerClientEvent('frz-phone:callConnected', call.caller, call.calleeNumber, call.calleeNumber)
-    TriggerClientEvent('frz-phone:callConnected', call.callee, call.callerNumber, call.callerNumber)
+    TriggerClientEvent('frz-phone:callConnected', call.caller, call.calleeNumber, call.calleeName or call.calleeNumber)
+    TriggerClientEvent('frz-phone:callConnected', call.callee, call.callerNumber, call.callerName or call.callerNumber)
     TriggerClientEvent('frz-phone:voice:connect', call.caller, call.callee, call.calleeNumber)
     TriggerClientEvent('frz-phone:voice:connect', call.callee, call.caller, call.callerNumber)
 end)
