@@ -1,0 +1,86 @@
+// FRZ RP Shop - Prisma schema
+// Boutique GTA RP (mods, armes, vehicules) avec livraison en jeu via QBCore.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String     @id @default(cuid())
+  discordId   String     @unique
+  username    String
+  avatar      String?
+  email       String?
+  isAdmin     Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  orders      Order[]
+  deliveries  Delivery[]
+}
+
+model Item {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  category    String   // "weapon" | "vehicle" | "item" | "vip" | "money"
+  priceCents  Int      // prix en centimes d'euro
+  currency    String   @default("EUR")
+  imageUrl    String?
+  // Payload livre en jeu (QBCore). Ex:
+  //   weapon:  {"type":"weapon","name":"weapon_pistol","amount":1,"ammo":100}
+  //   vehicle: {"type":"vehicle","model":"adder","plate":"FRZ"}
+  //   item:    {"type":"item","name":"vip_pack","amount":1}
+  //   money:   {"type":"money","account":"bank","amount":50000}
+  payload     String   // JSON stringifie
+  active      Boolean  @default(true)
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orders      Order[]
+  deliveries  Delivery[]
+}
+
+model Order {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  itemId        String
+  item          Item      @relation(fields: [itemId], references: [id])
+  amountCents   Int
+  currency      String    @default("EUR")
+  status        String    @default("PENDING") // PENDING | PAID | FAILED | REFUNDED
+  paypalOrderId String?   @unique
+  paypalCaptureId String?
+  createdAt     DateTime  @default(now())
+  paidAt        DateTime?
+  deliveries    Delivery[]
+}
+
+model Delivery {
+  id         String    @id @default(cuid())
+  orderId    String
+  order      Order     @relation(fields: [orderId], references: [id])
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  itemId     String
+  item       Item      @relation(fields: [itemId], references: [id])
+  payload    String    // snapshot du payload au moment de l'achat
+  status     String    @default("PENDING") // PENDING | DELIVERED | FAILED
+  createdAt  DateTime  @default(now())
+  deliveredAt DateTime?
+  note       String?
+}
+
+// Trace d'audit des webhooks PayPal et des livraisons (pour debug).
+model WebhookLog {
+  id        String   @id @default(cuid())
+  source    String   // "paypal" | "fivem"
+  event     String
+  payload   String
+  createdAt DateTime @default(now())
+}
