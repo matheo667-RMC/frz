@@ -112,7 +112,10 @@ local function deposit(src, amount)
         if have < amount then
             return false, 'pas assez de cash'
         end
-        pcall(function() exports['frz-inventory']:removeItem(src, 'cash', amount) end)
+        local rmOk, rmRet = pcall(function() return exports['frz-inventory']:removeItem(src, 'cash', amount) end)
+        if not rmOk or rmRet == false then
+            return false, 'erreur retrait cash'
+        end
     end
     a.balance = a.balance + amount
     addTransaction(a, 'Dépôt', amount, 'deposit')

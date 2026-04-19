@@ -187,7 +187,9 @@ RegisterNetEvent('frz-phone:message:send', function(toNumber, text)
         ts = os.time(),
     }
     table.insert(messagesForNumber(phone.number), msg)
-    table.insert(messagesForNumber(toNumber), msg)
+    if toNumber ~= phone.number then
+        table.insert(messagesForNumber(toNumber), msg)
+    end
     -- Notification au destinataire si en ligne.
     local targetId = NUMBER_TO_ID[toNumber]
     if targetId and ONLINE[targetId] then
