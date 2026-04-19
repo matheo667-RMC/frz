@@ -177,6 +177,24 @@ RegisterNetEvent('frz-rp-spawn:rentalSpawnFailed', function(model, paidAmount)
         pending.price, id, newBal))
 end)
 
+-- Le client confirme que le spawn s'est bien passe : on supprime le token de
+-- remboursement immediatement pour fermer la fenetre d'exploit (sans ca, le
+-- token reste valide jusqu'au TTL de 30s et un client modifie pourrait envoyer
+-- rentalSpawnFailed pour recuperer les $$ tout en gardant le vehicule).
+RegisterNetEvent('frz-rp-spawn:rentalSpawnOK', function(model, paidAmount)
+    if not isEnabled() then return end
+    local src = source
+    local pending = pendingRefunds[src]
+    if not pending then return end
+
+    -- Verifie que l'event correspond bien au token courant (protection
+    -- basique contre une confirmation envoyee avec des mauvais args).
+    local claimed = tonumber(paidAmount) or 0
+    if pending.model == model and pending.price == claimed then
+        pendingRefunds[src] = nil
+    end
+end)
+
 -- Si un achat succes (rentVehicle a envoye rentalResult.ok=true) n'est jamais
 -- confirme par le client dans les PENDING_REFUND_TTL ms, on considere que le
 -- spawn a reussi et on supprime le token silencieusement (= plus de refund

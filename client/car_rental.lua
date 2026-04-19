@@ -192,6 +192,14 @@ RegisterNetEvent('frz-rp-spawn:rentalResult', function(result)
         closeMenu()
         local ok = FrzSpawn.spawnRentedVehicle(result.model)
         if ok then
+            -- Ferme la fenetre de remboursement cote serveur : sans ca, le
+            -- pendingRefund resterait valide jusqu'a son TTL (30s) et un client
+            -- modifie pourrait envoyer rentalSpawnFailed pour recuperer les $$
+            -- tout en gardant le vehicule.
+            if result.price and result.price > 0 then
+                TriggerServerEvent('frz-rp-spawn:rentalSpawnOK',
+                    result.model, result.price)
+            end
             local priceStr = (result.price and result.price > 0)
                 and ('pour ' .. result.price .. ' $') or 'gratuitement'
             BeginTextCommandThefeedPost('STRING')
