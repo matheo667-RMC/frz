@@ -69,6 +69,7 @@
 
     // ----- Rental menu (car dealer NPC) -----
     const rental = document.getElementById('rental');
+    const rentalTabs = document.getElementById('rental-tabs');
     const rentalList = document.getElementById('rental-list');
     const rentalBalance = document.getElementById('rental-balance');
     const rentalError = document.getElementById('rental-error');
@@ -77,7 +78,24 @@
     // Cache de la liste affichee pour pouvoir re-render les boutons quand le
     // solde change (admin `frzgivemoney` en live, erreur serveur, etc.).
     let currentVehicles = [];
+    let currentCategories = [];
     let currentBalance = 0;
+    let currentCategory = null; // cle de la categorie active (ex: 'bike')
+
+    // Mapping visuel pour les couleurs des vehicules (pastille affichee dans
+    // la fiche du vehicule). Les cles doivent matcher Config.CarRental.colors
+    // cote Lua.
+    const COLOR_SWATCH = {
+        black: '#111111',
+        white: '#f2f2ef',
+        red:   '#c92a2a',
+    };
+
+    const CATEGORY_ICON = {
+        bike: 'B',
+        moto: 'M',
+        car:  'V',
+    };
 
     function sendNui(name, payload) {
         try {
@@ -98,58 +116,150 @@
         // Re-render la liste avec l'etat actuel (solde) pour que les boutons
         // "Fonds insuffisants" passent en "Louer" (ou l'inverse) apres un
         // changement de solde en live.
-        renderRentalVehicles(currentVehicles, currentBalance);
+        renderRentalVehicles();
     }
 
-    function renderRentalVehicles(vehicles, balance) {
-        rentalList.innerHTML = '';
-        (vehicles || []).forEach(function (v) {
-            const row = document.createElement('div');
-            row.className = 'rental-item';
+    function vehiclesForCurrentCategory() {
+        if (!currentCategory) return currentVehicles;
+        return currentVehicles.filter(function (v) {
+            return v.category === currentCategory;
+        });
+    }
 
+    function renderRentalTabs() {
+        rentalTabs.innerHTML = '';
+        (currentCategories || []).forEach(function (c) {
+            if (!c || !c.key) return;
+            const btn = document.createElement('button');
+            btn.className = 'rental-tab';
+            btn.type = 'button';
+            btn.dataset.category = c.key;
+
+            const icon = document.createElement('span');
+            icon.className = 'rental-tab-icon';
+            icon.textContent = CATEGORY_ICON[c.key] || '?';
+
+            const label = document.createElement('span');
+            label.className = 'rental-tab-label';
+            label.textContent = c.label || c.key;
+
+            const count = currentVehicles.filter(function (v) {
+                return v.category === c.key;
+            }).length;
+            const badge = document.createElement('span');
+            badge.className = 'rental-tab-count';
+            badge.textContent = String(count);
+
+            btn.appendChild(icon);
+            btn.appendChild(label);
+            btn.appendChild(badge);
+            if (c.key === currentCategory) btn.classList.add('active');
+            btn.addEventListener('click', function () {
+                if (currentCategory !== c.key) {
+                    currentCategory = c.key;
+                    renderRentalTabs();
+                    renderRentalVehicles();
+                }
+            });
+            rentalTabs.appendChild(btn);
+        });
+    }
+
+    function formatPrice(price) {
+        return price === 0 ? 'GRATUIT' : ('$ ' + price);
+    }
+
+    function renderRentalVehicles() {
+        rentalList.innerHTML = '';
+        const list = vehiclesForCurrentCategory();
+        if (list.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'rental-empty';
+            empty.textContent = 'Aucun vehicule dans cette categorie.';
+            rentalList.appendChild(empty);
+            return;
+        }
+        list.forEach(function (v) {
+            const card = document.createElement('div');
+            card.className = 'rental-card';
+
+            // Preview (pastille de couleur + icone categorie)
+            const preview = document.createElement('div');
+            preview.className = 'rental-card-preview';
+            const swatch = COLOR_SWATCH[v.color] || '#444';
+            preview.style.background = 'linear-gradient(135deg, ' + swatch + ' 0%, rgba(0,0,0,0.6) 100%)';
+            const previewIcon = document.createElement('div');
+            previewIcon.className = 'rental-card-preview-icon';
+            previewIcon.textContent = CATEGORY_ICON[v.category] || '?';
+            preview.appendChild(previewIcon);
+
+            // Info principale
             const info = document.createElement('div');
-            info.className = 'rental-item-info';
+            info.className = 'rental-card-info';
 
             const label = document.createElement('div');
-            label.className = 'rental-item-label';
+            label.className = 'rental-card-label';
             label.textContent = v.label || v.model;
 
-            const sub = document.createElement('div');
-            sub.className = 'rental-item-sub';
-            sub.textContent = String(v.model || '').toUpperCase();
+            const meta = document.createElement('div');
+            meta.className = 'rental-card-meta';
+            const colorLabel = (v.color || 'standard').toUpperCase();
+            meta.innerHTML = '<span>' + String(v.model || '').toUpperCase() + '</span>'
+                + '<span class="rental-card-dot">&middot;</span>'
+                + '<span>' + colorLabel + '</span>';
 
             info.appendChild(label);
-            info.appendChild(sub);
+            info.appendChild(meta);
 
-            const price = document.createElement('div');
+            // Prix
             const priceVal = Number(v.price || 0);
-            price.className = 'rental-item-price' + (priceVal === 0 ? ' free' : '');
-            price.textContent = priceVal === 0 ? 'GRATUIT' : ('$ ' + priceVal);
+            const price = document.createElement('div');
+            price.className = 'rental-card-price' + (priceVal === 0 ? ' free' : '');
+            price.textContent = formatPrice(priceVal);
 
+            // Bouton
             const btn = document.createElement('button');
-            btn.className = 'rental-item-btn';
+            btn.className = 'rental-card-btn';
             btn.type = 'button';
             btn.textContent = priceVal === 0 ? 'Prendre' : 'Louer';
-            if (priceVal > 0 && Number(balance || 0) < priceVal) {
+            if (priceVal > 0 && currentBalance < priceVal) {
                 btn.disabled = true;
                 btn.classList.add('disabled');
                 btn.textContent = 'Fonds insuffisants';
             }
             btn.addEventListener('click', function () {
+                if (btn.disabled) return;
                 sendNui('rent', { model: v.model });
             });
 
-            row.appendChild(info);
-            row.appendChild(price);
-            row.appendChild(btn);
-            rentalList.appendChild(row);
+            card.appendChild(preview);
+            card.appendChild(info);
+            card.appendChild(price);
+            card.appendChild(btn);
+            rentalList.appendChild(card);
         });
     }
 
-    function showRental(balance, vehicles) {
+    function pickDefaultCategory() {
+        if (!currentCategories || currentCategories.length === 0) return null;
+        // Choisit la premiere categorie qui a au moins un vehicule, sinon la
+        // premiere tout court.
+        for (let i = 0; i < currentCategories.length; i++) {
+            const key = currentCategories[i].key;
+            if (currentVehicles.some(function (v) { return v.category === key; })) {
+                return key;
+            }
+        }
+        return currentCategories[0].key;
+    }
+
+    function showRental(balance, vehicles, categories) {
         currentVehicles = Array.isArray(vehicles) ? vehicles.slice() : [];
+        currentCategories = Array.isArray(categories) ? categories.slice() : [];
+        currentCategory = pickDefaultCategory();
         setBalance(balance);
-        renderRentalVehicles(currentVehicles, currentBalance);
+        renderRentalTabs();
+        renderRentalVehicles();
         if (rentalError) {
             rentalError.textContent = '';
             rentalError.classList.add('hidden');
@@ -211,7 +321,7 @@
                 stopPlaneLanding();
                 break;
             case 'showRental':
-                showRental(data.balance, data.vehicles);
+                showRental(data.balance, data.vehicles, data.categories);
                 break;
             case 'hideRental':
                 hideRental();

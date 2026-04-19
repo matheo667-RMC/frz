@@ -166,12 +166,13 @@ AddEventHandler('onResourceStop', function(res)
 end)
 
 -- Reception : le serveur a autorise l'ouverture du menu.
-RegisterNetEvent('frz-rp-spawn:showRentalMenu', function(balance, vehicles)
+RegisterNetEvent('frz-rp-spawn:showRentalMenu', function(balance, vehicles, categories)
     menuOpen = true
     SendNUIMessage({
         action = 'showRental',
         balance = balance or 0,
         vehicles = vehicles or {},
+        categories = categories or {},
     })
     SetNuiFocus(true, true)
 end)
@@ -253,6 +254,24 @@ end)
 -- Spawn de la voiture louee (local, puis transfere au reseau).
 -- ============================================================================
 
+-- Trouve l'entree vehicule dans la config (pour recuperer color / category).
+local function findConfigVehicle(modelName)
+    if not Config.CarRental or not Config.CarRental.vehicles then return nil end
+    for _, v in ipairs(Config.CarRental.vehicles) do
+        if v.model == modelName then return v end
+    end
+    return nil
+end
+
+-- Retourne l'ID de couleur GTA pour une cle symbolique ('black', 'white',
+-- 'red', ...) configuree dans Config.CarRental.colors.
+local function resolveColor(key)
+    if not key or not Config.CarRental or not Config.CarRental.colors then
+        return nil
+    end
+    return Config.CarRental.colors[key]
+end
+
 function FrzSpawn.spawnRentedVehicle(modelName)
     local sp = Config.CarRental and Config.CarRental.spawnPos
     if not sp then return false end
@@ -277,6 +296,24 @@ function FrzSpawn.spawnRentedVehicle(modelName)
     SetVehicleEngineOn(veh, true, true, false)
     SetVehicleFuelLevel(veh, 100.0)
     SetVehicleNumberPlateText(veh, 'FRZ ' .. math.random(100, 999))
+
+    -- Couleur definie dans la config : on applique la meme teinte primary et
+    -- secondary pour que le vehicule soit uniformement colore (pas de contraste
+    -- toit/carrosserie qui ferait bizarre sur un velo).
+    local entry = findConfigVehicle(modelName)
+    local colorId = entry and resolveColor(entry.color)
+    if colorId then
+        SetVehicleColours(veh, colorId, colorId)
+    end
+
+    -- Met le joueur directement au volant (siege conducteur = -1) si la config
+    -- le demande. Evite au joueur d'avoir a courir autour du vehicule.
+    if Config.CarRental and Config.CarRental.putPlayerInVehicle then
+        local ped = PlayerPedId()
+        if DoesEntityExist(ped) then
+            TaskWarpPedIntoVehicle(ped, veh, -1)
+        end
+    end
 
     SetModelAsNoLongerNeeded(model)
     return true

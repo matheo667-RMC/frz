@@ -26,30 +26,35 @@ Config.PilotModel = 's_m_m_pilot_01'
 
 -- Position initiale de l'avion (sur la trajectoire d'approche, en altitude).
 -- Format : vector4(x, y, z, heading). Heading pointe vers le debut de piste.
-Config.PlaneSpawn = vector4(570.0, -3646.0, 250.0, 72.0)
+-- On demarre proche (~700 m du seuil de piste) et bas (90 m d'altitude) pour
+-- que l'avion soit GROS et bien visible a la camera, puis descend et touche
+-- la piste avant la fin de la cinematique.
+Config.PlaneSpawn = vector4(-703.0, -3255.0, 90.0, 245.0)
 
--- Vitesse initiale de l'avion (moderee pour permettre un bon atterrissage).
-Config.PlaneSpeed = 55.0
+-- Vitesse initiale de l'avion (plus rapide = on voit bien l'avion descendre).
+Config.PlaneSpeed = 70.0
 
 -- Coordonnees de la piste d'atterrissage LSIA (depart / fin).
 Config.RunwayStart = vector3(-1336.0, -3044.0, 13.95)
 Config.RunwayEnd   = vector3(-1659.0, -2942.0, 13.95)
 
 -- Position et rotation de la camera cinematique pendant l'atterrissage.
-Config.CameraPosition = vector3(-1100.0, -3150.0, 55.0)
-Config.CameraRotation = vector3(-8.0, 0.0, 235.0)
+-- Camera placee a mi-chemin entre le spawn de l'avion et la piste, sur le cote,
+-- pour un shot cinematique 3/4 arriere pendant que l'avion descend.
+Config.CameraPosition = vector3(-1050.0, -3120.0, 55.0)
+Config.CameraRotation = vector3(-5.0, 0.0, 245.0)
 
 -- Delai (ms depuis le debut de la cinematique) avant de declencher le son
 -- d'atterrissage (bruit d'avion + touchdown). Calibre pour correspondre
 -- au moment ou l'avion touche la piste visuellement.
-Config.LandingSoundDelay = 7500
+Config.LandingSoundDelay = 9000
 
 -- Duree du title card affiche au debut (ms).
 Config.TitleCardDuration = 3000
 
 -- Duree totale de la cinematique (ms) : title card + observation de l'avion.
--- Doit etre superieur a TitleCardDuration + LandingSoundDelay + ~2 s.
-Config.CinematicDuration = 12000
+-- On laisse assez de temps pour que l'avion descende de 90m a 15m sur ~700m.
+Config.CinematicDuration = 15000
 
 -- Duree d'affichage de la banniere d'annonce (ms).
 -- Doit etre >= duree du fichier audio 'html/welcome_fr.ogg' (~16 s).
@@ -86,8 +91,9 @@ Config.CarRental = {
     -- 'a_m_y_business_03' (businessman), 'ig_rashcosvki' (dealer).
     pedModel = 's_m_m_lsmetro_01',
 
-    -- Point d'apparition de la voiture achetee (a cote du vendeur, sur la route).
-    spawnPos = vector4(-1048.0, -2734.0, 20.17, 240.0),
+    -- Point d'apparition de la voiture achetee (sur la voie devant le terminal).
+    -- Le joueur est mis automatiquement au volant (siege conducteur).
+    spawnPos = vector4(-1041.0, -2743.5, 19.95, 145.0),
 
     -- Distance (m) a laquelle le prompt d'interaction apparait.
     interactionDistance = 2.5,
@@ -96,13 +102,39 @@ Config.CarRental = {
     -- Utilise IsControlJustReleased avec INPUT_PICKUP.
     interactionKey = 38,
 
+    -- Si true, le joueur est place directement au volant du vehicule livre.
+    -- Si false, le vehicule spawn vide a cote du vendeur.
+    putPlayerInVehicle = true,
+
+    -- Couleurs GTA utilisees pour colorer les vehicules au spawn.
+    -- Les valeurs sont des IDs de couleur GTA (voir natives SetVehicleColours).
+    -- Clefs utilisees dans le champ `color` des vehicules ci-dessous.
+    colors = {
+        black = 0,    -- Metallic Black
+        white = 134,  -- Utility Off White (blanc casse, bien visible)
+        red   = 27,   -- Metallic Red
+    },
+
+    -- Categories disponibles dans le menu. La cle est utilisee dans le champ
+    -- `category` de chaque vehicule. L'ordre controle l'ordre des onglets.
+    categories = {
+        { key = 'bike', label = 'Velos'    },
+        { key = 'moto', label = 'Motos'    },
+        { key = 'car',  label = 'Voitures' },
+    },
+
     -- Liste des vehicules proposes. Prix 0 = gratuit.
+    -- Champ `category` : 'bike' / 'moto' / 'car' (cf. `categories` au-dessus).
+    -- Champ `color`    : 'black' / 'white' / 'red' (cf. `colors` au-dessus).
     vehicles = {
-        { label = 'Blista',     model = 'blista',     price = 0   },
-        { label = 'Asea',       model = 'asea',       price = 0   },
-        { label = 'Dilettante', model = 'dilettante', price = 0   },
-        { label = 'Fugitive',   model = 'fugitive',   price = 150 },
-        { label = 'Buffalo S',  model = 'buffalo',    price = 300 },
-        { label = 'Sultan',     model = 'sultan',     price = 500 },
+        -- Velos (gratuits)
+        { label = 'BMX',        model = 'bmx',        category = 'bike', price = 0,   color = 'black' },
+        { label = 'Cruiser',    model = 'cruiser',    category = 'bike', price = 0,   color = 'white' },
+        -- Motos (1 gratuite, 1 payante)
+        { label = 'Sanchez',    model = 'sanchez',    category = 'moto', price = 0,   color = 'black' },
+        { label = 'Bagger',     model = 'bagger',     category = 'moto', price = 200, color = 'red'   },
+        -- Voitures (1 gratuite, 1 payante)
+        { label = 'Blista',     model = 'blista',     category = 'car',  price = 0,   color = 'white' },
+        { label = 'Sultan',     model = 'sultan',     category = 'car',  price = 500, color = 'black' },
     },
 }

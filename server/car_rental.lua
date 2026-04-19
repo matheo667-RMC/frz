@@ -54,13 +54,16 @@ RegisterNetEvent('frz-rp-spawn:openRentalMenu', function()
     local src = source
     if not isNearDealer(src) then return end
 
+    local categories = Config.CarRental.categories or {}
     local id = FrzMoney_LicenseOfSource(src)
     if not id then
-        TriggerClientEvent('frz-rp-spawn:showRentalMenu', src, 0, Config.CarRental.vehicles)
+        TriggerClientEvent('frz-rp-spawn:showRentalMenu', src, 0,
+            Config.CarRental.vehicles, categories)
         return
     end
     local money = FrzMoney_Get(id)
-    TriggerClientEvent('frz-rp-spawn:showRentalMenu', src, money, Config.CarRental.vehicles)
+    TriggerClientEvent('frz-rp-spawn:showRentalMenu', src, money,
+        Config.CarRental.vehicles, categories)
 end)
 
 -- Client demande a louer/acheter un vehicule.

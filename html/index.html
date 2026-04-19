@@ -25,16 +25,22 @@
     <div id="rental" class="hidden">
         <div class="rental-header">
             <div class="rental-brand">FRZ</div>
-            <div class="rental-title">Location de vehicules</div>
+            <div class="rental-title">Concession FRZ</div>
+            <div class="rental-subtitle">Location de vehicules</div>
             <button class="rental-close" id="rental-close" type="button" aria-label="Fermer">&times;</button>
         </div>
-        <div class="rental-balance">
-            Solde : <span id="rental-balance">0</span> $
+
+        <div class="rental-balance-row">
+            <div class="rental-balance-label">Solde</div>
+            <div class="rental-balance-value"><span id="rental-balance">0</span> <span class="rental-currency">$</span></div>
         </div>
+
+        <div class="rental-tabs" id="rental-tabs"></div>
+
         <div class="rental-list" id="rental-list"></div>
         <div class="rental-error hidden" id="rental-error"></div>
         <div class="rental-hint">
-            Conseil : appuie sur <strong>ESC</strong> pour fermer le menu.
+            <strong>ESC</strong> pour fermer, clique sur un vehicule pour le prendre.
         </div>
     </div>
 
