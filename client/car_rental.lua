@@ -4,10 +4,11 @@
 
 FrzSpawn = FrzSpawn or {}
 
-local dealerPed      = nil
-local menuOpen       = false
-local lastOpenRequest = 0   -- anti-spam + recuperation si le serveur ne repond pas
-local OPEN_COOLDOWN  = 1000 -- ms entre deux tentatives d'ouverture
+local dealerPed       = nil
+local menuOpen        = false
+local lastOpenRequest = 0    -- anti-spam + recuperation si le serveur ne repond pas
+local OPEN_COOLDOWN   = 1000 -- ms entre deux tentatives d'ouverture
+local rentInFlight    = false -- empeche les clics rapides de declencher plusieurs spawns
 
 -- Mapping des codes de controle GTA vers une etiquette lisible (touche physique
 -- usuelle sur clavier QWERTY, pour affichage dans le prompt 3D).
@@ -179,6 +180,14 @@ end)
 RegisterNetEvent('frz-rp-spawn:rentalResult', function(result)
     if not result then return end
     if result.ok then
+        -- Guard anti-doublon : si un spawn est deja en cours (clics rapides qui
+        -- auraient genere plusieurs rentVehicle), on ignore les resultats
+        -- suivants pour eviter de spawner plusieurs vehicules et de perdre
+        -- l'argent sur un seul pendingRefund. Le serveur ajoute aussi un
+        -- garde-fou, c'est une defense en profondeur.
+        if rentInFlight then return end
+        rentInFlight = true
+
         -- Ferme le menu et fait apparaitre la voiture.
         closeMenu()
         local ok = FrzSpawn.spawnRentedVehicle(result.model)
@@ -202,6 +211,8 @@ RegisterNetEvent('frz-rp-spawn:rentalResult', function(result)
                 EndTextCommandThefeedPostTicker(false, true)
             end
         end
+
+        rentInFlight = false
     else
         -- Ferme le menu et affiche un message d'erreur.
         local msg = 'Erreur lors de la location.'

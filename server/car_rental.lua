@@ -9,6 +9,12 @@
 local pendingRefunds = {}
 local PENDING_REFUND_TTL = 30000 -- ms avant que le token ne soit considere perime
 
+-- Cooldown anti-spam par joueur : empeche les clics rapides cote client de
+-- generer plusieurs debits consecutifs (et potentiellement d'ecraser le
+-- pendingRefund en cas d'echec de spawn du premier vehicule).
+local lastRentAt = {}
+local RENT_COOLDOWN = 1500 -- ms entre deux rentVehicle traites pour un meme src
+
 local function isEnabled()
     return Config.CarRental ~= nil and Config.CarRental.enabled == true
 end
@@ -61,6 +67,16 @@ end)
 RegisterNetEvent('frz-rp-spawn:rentVehicle', function(model)
     if not isEnabled() then return end
     local src = source
+
+    -- Cooldown anti-spam : si le joueur a deja une location en cours (pending
+    -- refund pas encore resolu) ou si sa derniere demande etait il y a moins
+    -- de RENT_COOLDOWN ms, on ignore. Defense cote serveur contre les clics
+    -- rapides / les clients modifies qui enverraient plusieurs events.
+    if pendingRefunds[src] then return end
+    local now = GetGameTimer()
+    if now - (lastRentAt[src] or 0) < RENT_COOLDOWN then return end
+    lastRentAt[src] = now
+
     if not isNearDealer(src) then
         TriggerClientEvent('frz-rp-spawn:rentalResult', src, {
             ok = false, reason = 'too_far', newBalance = 0,
@@ -180,6 +196,7 @@ end)
 -- Nettoyage a la deconnexion pour eviter de garder des tokens zombies.
 AddEventHandler('playerDropped', function()
     pendingRefunds[source] = nil
+    lastRentAt[source] = nil
 end)
 
 -- ============================================================================
