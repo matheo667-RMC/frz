@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>FRZ Phone</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="root" class="hidden">
+    <div class="phone" id="phone">
+      <div class="notch"></div>
+      <div class="speaker"></div>
+      <div class="screen" id="screen">
+        <div class="statusbar">
+          <span id="time">--:--</span>
+          <span class="status-right">
+            <span class="net">5G</span>
+            <span class="battery">🔋 87%</span>
+          </span>
+        </div>
+
+        <!-- Home (grid d'apps) -->
+        <section class="view" id="view-home">
+          <div class="wallpaper"></div>
+          <div class="greeting" id="greeting">FRZ</div>
+          <div class="app-grid" id="app-grid"></div>
+          <div class="dock">
+            <button class="app-icon" data-app="phone" style="background:#2ecc71">📞</button>
+            <button class="app-icon" data-app="messages" style="background:#3498db">💬</button>
+            <button class="app-icon" data-app="bank" style="background:#e74c3c">🏦</button>
+            <button class="app-icon" data-app="settings" style="background:#7f8c8d">⚙️</button>
+          </div>
+        </section>
+
+        <!-- Phone (dialer + call log) -->
+        <section class="view hidden" id="view-phone">
+          <header class="app-header"><button class="back">←</button><h2>Téléphone</h2></header>
+          <div class="tabs">
+            <button class="tab active" data-tab="dialer">Clavier</button>
+            <button class="tab" data-tab="calllog">Récents</button>
+          </div>
+          <div class="tab-pane active" id="tab-dialer">
+            <div class="dialer-display" id="dialer-display"></div>
+            <div class="keypad">
+              <button class="key" data-k="1">1</button>
+              <button class="key" data-k="2">2</button>
+              <button class="key" data-k="3">3</button>
+              <button class="key" data-k="4">4</button>
+              <button class="key" data-k="5">5</button>
+              <button class="key" data-k="6">6</button>
+              <button class="key" data-k="7">7</button>
+              <button class="key" data-k="8">8</button>
+              <button class="key" data-k="9">9</button>
+              <button class="key" data-k="*">*</button>
+              <button class="key" data-k="0">0</button>
+              <button class="key" data-k="#">#</button>
+            </div>
+            <div class="call-row">
+              <button id="call-btn" class="btn-call">📞 Appeler</button>
+              <button id="backspace" class="btn-bks">⌫</button>
+            </div>
+          </div>
+          <div class="tab-pane" id="tab-calllog">
+            <div id="calllog-list" class="list"></div>
+          </div>
+        </section>
+
+        <!-- Messages -->
+        <section class="view hidden" id="view-messages">
+          <header class="app-header">
+            <button class="back">←</button><h2>Messages</h2>
+            <button id="new-message" class="new-btn">✎</button>
+          </header>
+          <div id="convo-list" class="list"></div>
+          <div id="convo-view" class="hidden convo-view">
+            <header class="convo-header">
+              <button class="back-convo">←</button>
+              <span id="convo-peer"></span>
+            </header>
+            <div id="convo-messages" class="messages"></div>
+            <div class="compose">
+              <input id="message-input" placeholder="iMessage" />
+              <button id="send-message">➤</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Contacts -->
+        <section class="view hidden" id="view-contacts">
+          <header class="app-header"><button class="back">←</button><h2>Contacts</h2>
+            <button id="add-contact" class="new-btn">+</button>
+          </header>
+          <div id="contact-list" class="list"></div>
+        </section>
+
+        <!-- Bank -->
+        <section class="view hidden" id="view-bank">
+          <header class="app-header"><button class="back">←</button><h2>Banque FRZ</h2></header>
+          <div class="bank-card">
+            <div class="bank-card-bg"></div>
+            <div class="bank-card-chip"></div>
+            <div class="bank-card-number" id="card-number">•••• •••• •••• ••••</div>
+            <div class="bank-card-holder" id="card-holder">TITULAIRE</div>
+          </div>
+          <div class="balance-card">
+            <span class="label">Solde disponible</span>
+            <span class="value" id="balance">0,00 €</span>
+          </div>
+          <div class="bank-actions">
+            <button data-action="deposit">Déposer</button>
+            <button data-action="withdraw">Retirer</button>
+            <button data-action="transfer">Virement</button>
+          </div>
+          <h3 class="sub">Transactions récentes</h3>
+          <div id="tx-list" class="list"></div>
+        </section>
+
+        <!-- Wallet (cartes) -->
+        <section class="view hidden" id="view-wallet">
+          <header class="app-header"><button class="back">←</button><h2>Cartes</h2></header>
+          <div class="bank-card big">
+            <div class="bank-card-bg"></div>
+            <div class="bank-card-chip"></div>
+            <div class="bank-card-number" id="wallet-num">•••• •••• •••• ••••</div>
+            <div class="bank-card-holder" id="wallet-holder">TITULAIRE</div>
+            <div class="bank-card-issuer">FRZ BANK</div>
+          </div>
+          <div style="padding:20px;color:#aaa;text-align:center;font-size:13px">
+            Retirez/déposez via ATM ou l'app Banque.
+          </div>
+        </section>
+
+        <!-- Settings -->
+        <section class="view hidden" id="view-settings">
+          <header class="app-header"><button class="back">←</button><h2>Réglages</h2></header>
+          <div class="settings-group">
+            <h3>Système</h3>
+            <div class="setting-row">
+              <span>Style d'interface</span>
+              <select id="os-select">
+                <option value="iphone">iPhone (iOS)</option>
+                <option value="android">Android</option>
+              </select>
+            </div>
+            <div class="setting-row"><span>Mon numéro</span><span id="my-number">—</span></div>
+          </div>
+        </section>
+
+        <!-- Incoming/active call overlay -->
+        <section class="view hidden call-overlay" id="view-call">
+          <div class="call-name" id="call-name">Inconnu</div>
+          <div class="call-number" id="call-number"></div>
+          <div class="call-status" id="call-status">Appel en cours...</div>
+          <div class="call-actions">
+            <button id="btn-answer" class="btn-answer hidden">Répondre</button>
+            <button id="btn-decline" class="btn-decline hidden">Refuser</button>
+            <button id="btn-hangup" class="btn-hangup">Raccrocher</button>
+          </div>
+        </section>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+    <div id="toast" class="toast hidden"></div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
