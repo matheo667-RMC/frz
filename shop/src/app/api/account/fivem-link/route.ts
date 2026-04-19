@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -46,12 +47,16 @@ function toPayload(link: {
 }
 
 // Code humain-friendly : 6 caracteres alphanumeriques sans ambiguite.
-// ~32^6 = 1 milliard de combinaisons, largement assez pour etre unique.
+// ~32^6 = 1 milliard de combinaisons. On utilise un PRNG cryptographique car
+// ces codes permettent de revendiquer un compte payant (attach license + citizenid)
+// — un attaquant capable de predire des codes pourrait hijacker le lien d'un
+// autre utilisateur et detourner ses achats.
 function generateCode() {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sans I, O, 0, 1
+  const bytes = randomBytes(6);
   let out = "";
   for (let i = 0; i < 6; i++) {
-    out += alphabet[Math.floor(Math.random() * alphabet.length)];
+    out += alphabet[bytes[i] % alphabet.length];
   }
   return out;
 }
