@@ -21,6 +21,29 @@
         <div class="subtitle" id="banner-subtitle">Vous etes bien arrive a destination</div>
     </div>
 
+    <!-- Car rental menu (shown when player interacts with dealer NPC) -->
+    <div id="rental" class="hidden">
+        <div class="rental-header">
+            <div class="rental-brand">FRZ</div>
+            <div class="rental-title">Concession FRZ</div>
+            <div class="rental-subtitle">Location de vehicules</div>
+            <button class="rental-close" id="rental-close" type="button" aria-label="Fermer">&times;</button>
+        </div>
+
+        <div class="rental-balance-row">
+            <div class="rental-balance-label">Solde</div>
+            <div class="rental-balance-value"><span id="rental-balance">0</span> <span class="rental-currency">$</span></div>
+        </div>
+
+        <div class="rental-tabs" id="rental-tabs"></div>
+
+        <div class="rental-list" id="rental-list"></div>
+        <div class="rental-error hidden" id="rental-error"></div>
+        <div class="rental-hint">
+            <strong>ESC</strong> pour fermer, clique sur un vehicule pour le prendre.
+        </div>
+    </div>
+
     <audio id="welcome-audio" src="welcome_fr.ogg" preload="auto"></audio>
     <audio id="plane-audio" src="plane_landing.ogg" preload="auto"></audio>
     <script src="app.js"></script>
