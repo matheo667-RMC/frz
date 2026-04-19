@@ -204,11 +204,15 @@ RegisterNetEvent('frz-phone:bank:action', function(payload)
         TriggerClientEvent('frz-phone:notify', src, 'Service bancaire indisponible', 'error')
         return
     end
-    local ok, err = pcall(function()
+    local pcallOk, bankOk, bankErr = pcall(function()
         return exports['frz-bank']:handlePhoneAction(src, payload)
     end)
-    if not ok then
+    if not pcallOk then
         TriggerClientEvent('frz-phone:notify', src, 'Erreur banque', 'error')
+    elseif bankOk == false then
+        TriggerClientEvent('frz-phone:notify', src, 'Erreur : ' .. tostring(bankErr or 'inconnue'), 'error')
+    else
+        TriggerClientEvent('frz-phone:notify', src, 'Operation effectuee', 'success')
     end
     sendState(src)
 end)

@@ -24,6 +24,12 @@ local function endCall(callId, reason)
             for _, ident in ipairs(GetPlayerIdentifiers(src) or {}) do
                 if ident:match('^license:') then id = ident; break end
             end
+            if not id then
+                for _, ident in ipairs(GetPlayerIdentifiers(src) or {}) do
+                    if ident:match('^steam:') then id = ident; break end
+                end
+            end
+            if not id then id = 'ip:' .. (GetPlayerEndpoint(src) or tostring(src)) end
             if not id then return end
             local p = FrzPhone.ensurePhone(id)
             table.insert(p.callLog, 1, { number = otherNumber, type = ctype, ts = os.time() })
@@ -50,15 +56,18 @@ RegisterNetEvent('frz-phone:call:start', function(targetNumber)
         return
     end
 
-    local callerId
-    for _, i in ipairs(GetPlayerIdentifiers(src)) do
-        if i:match('^license:') then callerId = i; break end
+    local function resolveId(playerSrc)
+        for _, i in ipairs(GetPlayerIdentifiers(playerSrc) or {}) do
+            if i:match('^license:') then return i end
+        end
+        for _, i in ipairs(GetPlayerIdentifiers(playerSrc) or {}) do
+            if i:match('^steam:') then return i end
+        end
+        return 'ip:' .. (GetPlayerEndpoint(playerSrc) or tostring(playerSrc))
     end
+    local callerId = resolveId(src)
     local callerPhone = FrzPhone.ensurePhone(callerId)
-    local calleeId
-    for _, i in ipairs(GetPlayerIdentifiers(targetSrc)) do
-        if i:match('^license:') then calleeId = i; break end
-    end
+    local calleeId = resolveId(targetSrc)
     local calleePhone = FrzPhone.ensurePhone(calleeId)
 
     local id = newCallId()
@@ -78,8 +87,15 @@ RegisterNetEvent('frz-phone:call:start', function(targetNumber)
         if c.number == callerPhone.number then callerName = c.name; break end
     end
 
+    -- Nom du callee pour l'affichage cote caller.
+    local calleeName = calleePhone.number
+    for _, c in ipairs(callerPhone.contacts) do
+        if c.number == calleePhone.number then calleeName = c.name; break end
+    end
+
     TriggerClientEvent('frz-phone:incomingCall', targetSrc, callerPhone.number, callerName)
-    TriggerClientEvent('frz-phone:callConnected', src, calleePhone.number, calleePhone.number) -- ring state
+    -- Etat "ringing" cote caller : evenement distinct de callConnected.
+    TriggerClientEvent('frz-phone:outgoingCall', src, calleePhone.number, calleeName)
 
     -- Timeout 30s si pas de reponse.
     SetTimeout(30000, function()

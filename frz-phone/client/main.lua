@@ -102,6 +102,11 @@ RegisterNetEvent('frz-phone:callConnected', function(peerNumber, peerName)
     SendNUIMessage({ action = 'callConnected', number = peerNumber, name = peerName })
 end)
 
+RegisterNetEvent('frz-phone:outgoingCall', function(peerNumber, peerName)
+    SendNUIMessage({ action = 'outgoingCall', number = peerNumber, name = peerName })
+    if not isOpen then openPhone() end
+end)
+
 RegisterNetEvent('frz-phone:notify', function(msg, type)
     SendNUIMessage({ action = 'notify', message = msg, type = type })
 end)

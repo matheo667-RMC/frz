@@ -1,7 +1,6 @@
 -- FRZ Inventaire - serveur principal
 -- Stockage : fichier JSON dans le dossier de la resource (standalone, pas de DB).
-
-local json = json or { encode = function(...) return exports and '' or '' end }
+-- `json` est fourni par Cfx (global) : encode/decode.
 
 -- ============================================================================
 -- Persistance
@@ -98,37 +97,52 @@ local function addItem(src, itemName, count, targetSlot)
     local inv = ensureInventory(id)
     local meta = Items[itemName]
 
-    -- Stack existant.
+    -- Verification de poids AVANT toute mutation.
+    if Config.MaxWeight > 0 then
+        local projected = totalWeight(inv) + (meta.weight or 0) * count
+        if projected > Config.MaxWeight then return false, 'trop lourd' end
+    end
+
+    -- On prepare la liste des mutations puis on l'applique atomiquement.
+    -- En cas d'echec (pas de slot libre), on rollback les modifications deja faites.
+    local stackMods = {}    -- [slotIdx] = deltaCount
+    local newSlots = {}     -- { { slot, name, count } }
+
     if meta.stackable then
         for slotIdx, slot in pairs(inv.grid) do
+            if count <= 0 then break end
             if slot.name == itemName and (slot.count or 0) < (meta.max_stack or 1) then
                 local space = (meta.max_stack or 1) - slot.count
                 local add = math.min(space, count)
-                slot.count = slot.count + add
+                stackMods[slotIdx] = (stackMods[slotIdx] or 0) + add
                 count = count - add
-                if count <= 0 then break end
             end
         end
     end
-    -- Nouveaux slots.
     while count > 0 do
         local free = targetSlot
-        if not free or inv.grid[tostring(free)] then
+        if not free or inv.grid[tostring(free)] or newSlots[free] then
             free = nil
             for i = 1, (Config.GridRows * Config.GridCols) do
-                if not inv.grid[tostring(i)] then free = i; break end
+                local key = tostring(i)
+                local taken = inv.grid[key]
+                for _, n in ipairs(newSlots) do if n.slot == key then taken = true break end end
+                if not taken then free = i; break end
             end
         end
         if not free then return false, 'inventaire plein' end
         local add = math.min(count, meta.stackable and (meta.max_stack or 1) or 1)
-        inv.grid[tostring(free)] = { name = itemName, count = add }
+        table.insert(newSlots, { slot = tostring(free), name = itemName, count = add })
         count = count - add
         targetSlot = nil
     end
-    if Config.MaxWeight > 0 and totalWeight(inv) > Config.MaxWeight then
-        -- On rollback grossierement : refuse l'ajout en retirant ce qui depasse.
-        -- Simple : pas de gestion atomique parfaite, mais suffisant ici.
-        return false, 'trop lourd'
+
+    -- Applique les mutations (toutes ou rien -- on est arrive jusqu'ici donc on a la place).
+    for slotIdx, delta in pairs(stackMods) do
+        inv.grid[slotIdx].count = inv.grid[slotIdx].count + delta
+    end
+    for _, n in ipairs(newSlots) do
+        inv.grid[n.slot] = { name = n.name, count = n.count }
     end
     sendState(src)
     return true

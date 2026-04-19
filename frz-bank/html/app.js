@@ -32,6 +32,15 @@
     setTimeout(() => toast.classList.add('hidden'), 2500);
     toast.classList.remove('hidden');
   }
+  function makeEl(tag, opts, ...children) {
+    const el = document.createElement(tag);
+    opts = opts || {};
+    if (opts.class) el.className = opts.class;
+    if (opts.text !== undefined) el.textContent = opts.text;
+    for (const c of children) if (c != null) el.appendChild(c);
+    return el;
+  }
+  function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
   function render() {
     document.getElementById('balance').textContent = fmt(account.balance);
     const holder = (account.card && account.card.holder) || '—';
@@ -39,21 +48,21 @@
     const digits = (holder || '').replace(/\D/g, '').slice(-4).padStart(4, '•');
     document.getElementById('card-last').textContent = digits;
     const list = document.getElementById('tx-list');
-    list.innerHTML = '';
+    clear(list);
     const tx = account.transactions || [];
-    if (!tx.length) { list.innerHTML = '<div class="tx-row"><span class="tx-label">Aucune transaction</span></div>'; return; }
-    tx.slice(0, 20).forEach(t => {
-      const row = document.createElement('div');
-      row.className = 'tx-row';
-      const sign = t.amount >= 0 ? '+' : '';
-      row.innerHTML = `
-        <span>
-          <div class="tx-label">${t.label || t.type}</div>
-          <div class="tx-ts">${fmtTime(t.ts)}</div>
-        </span>
-        <span class="tx-amount ${t.amount >= 0 ? 'pos' : 'neg'}">${sign}${fmt(t.amount)}</span>
-      `;
+    if (!tx.length) {
+      const row = makeEl('div', { class: 'tx-row' }, makeEl('span', { class: 'tx-label', text: 'Aucune transaction' }));
       list.appendChild(row);
+      return;
+    }
+    tx.slice(0, 20).forEach(t => {
+      const sign = t.amount >= 0 ? '+' : '';
+      const amountEl = makeEl('span', { class: 'tx-amount ' + (t.amount >= 0 ? 'pos' : 'neg'), text: sign + fmt(t.amount) });
+      const labelEl = makeEl('span', null,
+        makeEl('div', { class: 'tx-label', text: t.label || t.type || '' }),
+        makeEl('div', { class: 'tx-ts', text: fmtTime(t.ts) }),
+      );
+      list.appendChild(makeEl('div', { class: 'tx-row' }, labelEl, amountEl));
     });
   }
 

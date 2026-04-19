@@ -20,6 +20,24 @@
       body: JSON.stringify(body || {}),
     }).catch(() => {});
   }
+  // Safe DOM builder : construit un element avec textContent uniquement (pas d'interpolation de HTML).
+  function h(tag, opts, ...children) {
+    const el = document.createElement(tag);
+    opts = opts || {};
+    if (opts.class) el.className = opts.class;
+    if (opts.text !== undefined) el.textContent = opts.text;
+    if (opts.data) for (const k in opts.data) el.dataset[k] = opts.data[k];
+    if (opts.attrs) for (const k in opts.attrs) el.setAttribute(k, opts.attrs[k]);
+    if (opts.style) el.setAttribute('style', opts.style);
+    if (opts.on) for (const k in opts.on) el.addEventListener(k, opts.on[k]);
+    for (const c of children) {
+      if (c == null) continue;
+      if (typeof c === 'string') el.appendChild(document.createTextNode(c));
+      else el.appendChild(c);
+    }
+    return el;
+  }
+  function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
   function showView(id) {
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
@@ -38,7 +56,6 @@
     return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   }
   function fmtCardNumber(seed) {
-    // "•••• •••• •••• XXXX" en utilisant le numero de tel comme base.
     const s = (seed || '').replace(/\D/g, '').slice(-4).padStart(4, '•');
     return `•••• •••• •••• ${s}`;
   }
@@ -54,49 +71,54 @@
   // ------ rendering ------
   function renderHome() {
     const grid = document.getElementById('app-grid');
-    grid.innerHTML = '';
+    clear(grid);
     const dockIds = new Set(['phone', 'messages', 'bank', 'settings']);
     apps.forEach(a => {
       if (dockIds.has(a.id)) return;
-      const div = document.createElement('div');
-      div.className = 'app-item';
-      div.innerHTML = `
-        <button class="app-icon" data-app="${a.id}" style="background:${a.color || '#555'}">${a.icon || '·'}</button>
-        <span class="app-label">${a.label}</span>
-      `;
-      grid.appendChild(div);
+      const btn = h('button', {
+        class: 'app-icon',
+        data: { app: a.id },
+        style: `background:${(a.color || '#555').replace(/[^#0-9a-zA-Z(), .]/g, '')}`,
+        text: a.icon || '·',
+      });
+      const label = h('span', { class: 'app-label', text: a.label || a.id });
+      grid.appendChild(h('div', { class: 'app-item' }, btn, label));
     });
-    // Aussi les dock-items ajoutent le label sous l'icone home ? Non, le dock reste simple.
   }
 
   function renderCallLog() {
     const el = document.getElementById('calllog-list');
-    el.innerHTML = '';
+    clear(el);
     if (!state.callLog.length) {
-      el.innerHTML = '<div class="list-row">Aucun appel</div>'; return;
+      el.appendChild(h('div', { class: 'list-row', text: 'Aucun appel' }));
+      return;
     }
     state.callLog.slice(0, 20).forEach(c => {
-      const row = document.createElement('div');
-      row.className = 'list-row';
       const type = c.type === 'in' ? '↙' : c.type === 'out' ? '↗' : '⚠';
-      row.innerHTML = `<span>${type} ${c.number}</span><span class="meta">${fmtTime(c.ts)}</span>`;
-      row.addEventListener('click', () => post('call', { number: c.number }));
+      const row = h('div', { class: 'list-row', on: { click: () => post('call', { number: c.number }) } },
+        h('span', { text: `${type} ${c.number}` }),
+        h('span', { class: 'meta', text: fmtTime(c.ts) }),
+      );
       el.appendChild(row);
     });
   }
 
   function renderConvos() {
     const list = document.getElementById('convo-list');
-    list.innerHTML = '';
+    clear(list);
     if (!state.conversations.length) {
-      list.innerHTML = '<div class="list-row">Aucun message</div>'; return;
+      list.appendChild(h('div', { class: 'list-row', text: 'Aucun message' }));
+      return;
     }
     state.conversations.forEach(c => {
-      const row = document.createElement('div');
-      row.className = 'list-row';
       const last = c.messages[c.messages.length - 1];
-      row.innerHTML = `<span><strong>${c.name}</strong><div style="font-size:12px;color:#888">${last ? last.text.slice(0, 40) : ''}</div></span><span class="meta">${last ? fmtTime(last.ts) : ''}</span>`;
-      row.addEventListener('click', () => openConvo(c.number, c.name));
+      const row = h('div', { class: 'list-row', on: { click: () => openConvo(c.number, c.name) } },
+        h('span', null,
+          h('strong', { text: c.name || c.number }),
+          h('div', { style: 'font-size:12px;color:#888', text: last ? last.text.slice(0, 40) : '' }),
+        ),
+        h('span', { class: 'meta', text: last ? fmtTime(last.ts) : '' }),
+      );
       list.appendChild(row);
     });
   }
@@ -116,12 +138,13 @@
   function renderMessages() {
     const convo = (state.conversations || []).find(c => c.number === currentConvo);
     const el = document.getElementById('convo-messages');
-    el.innerHTML = '';
+    clear(el);
     if (!convo) return;
     convo.messages.forEach(m => {
-      const b = document.createElement('div');
-      b.className = 'msg-bubble ' + (m.from === state.number ? 'me' : 'them');
-      b.textContent = m.text;
+      const b = h('div', {
+        class: 'msg-bubble ' + (m.from === state.number ? 'me' : 'them'),
+        text: m.text,
+      });
       el.appendChild(b);
     });
     el.scrollTop = el.scrollHeight;
@@ -129,19 +152,28 @@
 
   function renderContacts() {
     const el = document.getElementById('contact-list');
-    el.innerHTML = '';
+    clear(el);
     if (!state.contacts.length) {
-      el.innerHTML = '<div class="list-row">Aucun contact</div>'; return;
+      el.appendChild(h('div', { class: 'list-row', text: 'Aucun contact' }));
+      return;
     }
     state.contacts.forEach(c => {
-      const row = document.createElement('div');
-      row.className = 'list-row';
-      row.innerHTML = `<span>${c.name}<div style="font-size:12px;color:#888">${c.number}</div></span><span>📞</span>`;
-      row.addEventListener('click', () => post('call', { number: c.number }));
-      row.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        if (confirm(`Supprimer ${c.name} ?`)) post('removeContact', { number: c.number });
-      });
+      const row = h('div', {
+        class: 'list-row',
+        on: {
+          click: () => post('call', { number: c.number }),
+          contextmenu: (e) => {
+            e.preventDefault();
+            if (confirm(`Supprimer ${c.name} ?`)) post('removeContact', { number: c.number });
+          },
+        },
+      },
+        h('span', null,
+          document.createTextNode(c.name || ''),
+          h('div', { style: 'font-size:12px;color:#888', text: c.number || '' }),
+        ),
+        h('span', { text: '📞' }),
+      );
       el.appendChild(row);
     });
   }
@@ -153,18 +185,20 @@
     document.getElementById('wallet-holder').textContent = state.number || 'TITULAIRE';
     document.getElementById('balance').textContent = fmtEur(state.bank.balance);
     const tx = document.getElementById('tx-list');
-    tx.innerHTML = '';
-    (state.bank.transactions || []).slice(0, 10).forEach(t => {
-      const row = document.createElement('div');
-      row.className = 'list-row';
+    clear(tx);
+    const txs = state.bank.transactions || [];
+    if (!txs.length) {
+      tx.appendChild(h('div', { class: 'list-row', text: 'Aucune transaction' }));
+      return;
+    }
+    txs.slice(0, 10).forEach(t => {
       const sign = (t.amount >= 0 ? '+' : '') + fmtEur(t.amount);
       const color = t.amount >= 0 ? '#2ecc71' : '#e74c3c';
-      row.innerHTML = `<span>${t.label || t.type}</span><span class="meta" style="color:${color};font-weight:600">${sign}</span>`;
-      tx.appendChild(row);
+      tx.appendChild(h('div', { class: 'list-row' },
+        h('span', { text: t.label || t.type || '' }),
+        h('span', { class: 'meta', style: `color:${color};font-weight:600`, text: sign }),
+      ));
     });
-    if (!(state.bank.transactions || []).length) {
-      tx.innerHTML = '<div class="list-row">Aucune transaction</div>';
-    }
   }
 
   function renderSettings() {
@@ -307,7 +341,7 @@
     showView('view-call');
   }
   function setCallConnected(number, name) {
-    if (!callContext) return;
+    if (!callContext) callContext = { dir: 'in', number, name, state: 'active' };
     callContext.state = 'active';
     callContext.number = number;
     document.getElementById('call-name').textContent = name || number;
@@ -342,12 +376,10 @@
       root.classList.add('hidden');
     } else if (d.action === 'incomingCall') {
       showIncomingCall(d.from, d.name);
+    } else if (d.action === 'outgoingCall') {
+      showOutgoingCall(d.number, d.name);
     } else if (d.action === 'callConnected') {
-      if (callContext && callContext.state === 'ringing' && callContext.dir === 'out') {
-        // Still dialing (other end ringing).
-      } else {
-        setCallConnected(d.number, d.name);
-      }
+      setCallConnected(d.number, d.name);
     } else if (d.action === 'callEnded') {
       endCallUI(d.reason);
     } else if (d.action === 'notify') {

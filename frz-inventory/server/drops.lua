@@ -79,11 +79,31 @@ RegisterNetEvent('frz-inventory:drops:pickup', function(dropId)
     local dist = math.sqrt(dx*dx + dy*dy + dz*dz)
     if dist > (Config.PickupDistance or 1.5) + 1.0 then return end
 
+    -- Tente d'ajouter chaque item ; on ne retire du drop que ce qui a effectivement ete ajoute.
+    local remaining = {}
+    local anyPickedUp = false
     for _, it in ipairs(drop.items or {}) do
-        exports[GetCurrentResourceName()]:addItem(src, it.name, it.count)
+        local ok = exports[GetCurrentResourceName()]:addItem(src, it.name, it.count)
+        if ok then
+            anyPickedUp = true
+        else
+            table.insert(remaining, it)
+        end
     end
-    DROPS[tostring(dropId)] = nil
-    TriggerClientEvent('frz-inventory:drops:remove', -1, dropId)
+    if not anyPickedUp then
+        TriggerClientEvent('frz-inventory:notify', src, 'Inventaire plein ou trop lourd', 'error')
+        return
+    end
+    if #remaining > 0 then
+        drop.items = remaining
+        -- Re-broadcast avec les items restants.
+        local list = {}
+        for _, d in pairs(DROPS) do list[#list+1] = d end
+        TriggerClientEvent('frz-inventory:drops:sync', -1, list)
+    else
+        DROPS[tostring(dropId)] = nil
+        TriggerClientEvent('frz-inventory:drops:remove', -1, dropId)
+    end
 end)
 
 -- Quand un joueur spawn, on lui pousse l'etat des drops.

@@ -30,6 +30,18 @@
     }).catch(() => {});
   }
 
+  // Safe DOM helpers : pas d'innerHTML avec des donnees utilisateur.
+  function makeEl(tag, opts, ...children) {
+    const el = document.createElement(tag);
+    opts = opts || {};
+    if (opts.class) el.className = opts.class;
+    if (opts.text !== undefined) el.textContent = opts.text;
+    if (opts.style) el.setAttribute('style', opts.style);
+    for (const c of children) if (c != null) el.appendChild(c);
+    return el;
+  }
+  function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+
   function close() {
     root.classList.add('hidden');
     post('close');
@@ -53,7 +65,7 @@
 
   function renderGrid() {
     grid.style.setProperty('--cols', state.cols || 5);
-    grid.innerHTML = '';
+    clear(grid);
     const total = (state.rows || 6) * (state.cols || 5);
     for (let i = 1; i <= total; i++) {
       const slot = document.createElement('div');
@@ -67,11 +79,11 @@
         slot.classList.remove('empty');
         slot.draggable = true;
         slot.dataset.itemName = item.name;
-        slot.innerHTML = `
-          <div class="icon">${meta.icon || '📦'}</div>
-          <div class="name">${meta.label || item.name}</div>
-          ${item.count > 1 ? `<span class="count">${item.count}</span>` : ''}
-        `;
+        slot.appendChild(makeEl('div', { class: 'icon', text: meta.icon || '📦' }));
+        slot.appendChild(makeEl('div', { class: 'name', text: meta.label || item.name }));
+        if (item.count > 1) {
+          slot.appendChild(makeEl('span', { class: 'count', text: String(item.count) }));
+        }
         slot.title = (meta.description || meta.label || item.name);
       }
 
@@ -81,8 +93,8 @@
   }
 
   function renderClothing() {
-    clothingLeft.innerHTML = '';
-    clothingRight.innerHTML = '';
+    clear(clothingLeft);
+    clear(clothingRight);
     const slots = state.clothingSlots || [];
     slots.forEach((s, idx) => {
       const el = document.createElement('div');
@@ -92,17 +104,13 @@
       if (equipped) {
         el.classList.add('filled');
         const meta = state.items[equipped.name] || {};
-        el.innerHTML = `
-          <div class="cloth-label">${s.label}</div>
-          <div class="cloth-item">${meta.icon || '👕'}</div>
-          <div class="cloth-name">${meta.label || equipped.name}</div>
-        `;
+        el.appendChild(makeEl('div', { class: 'cloth-label', text: s.label }));
+        el.appendChild(makeEl('div', { class: 'cloth-item', text: meta.icon || '👕' }));
+        el.appendChild(makeEl('div', { class: 'cloth-name', text: meta.label || equipped.name }));
       } else {
-        el.innerHTML = `
-          <div class="cloth-label">${s.label}</div>
-          <div class="cloth-item">·</div>
-          <div class="cloth-name" style="color:#5a6070">vide</div>
-        `;
+        el.appendChild(makeEl('div', { class: 'cloth-label', text: s.label }));
+        el.appendChild(makeEl('div', { class: 'cloth-item', text: '·' }));
+        el.appendChild(makeEl('div', { class: 'cloth-name', style: 'color:#5a6070', text: 'vide' }));
       }
       wireClothingEvents(el);
       (idx % 2 === 0 ? clothingLeft : clothingRight).appendChild(el);
