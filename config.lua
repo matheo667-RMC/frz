@@ -94,16 +94,19 @@ Config.CarRental = {
     -- Somme de depart (GTA $) creditee a chaque nouveau joueur au premier join.
     startingCash = 1000,
 
-    -- Position du PNJ vendeur (pres du poteau du terminal, cote route).
-    pedPos = vector4(-1031.5, -2731.5, 20.17, 145.0),
+    -- Position du PNJ vendeur (colle au poteau du terminal, au bord
+    -- du plateau, en face de la route ou spawn la voiture).
+    pedPos = vector4(-1034.2, -2735.2, 20.17, 155.0),
 
     -- Modele du PNJ. Exemples : 's_m_m_lsmetro_01' (employe LS Metro),
     -- 'a_m_y_business_03' (businessman), 'ig_rashcosvki' (dealer).
     pedModel = 's_m_m_lsmetro_01',
 
-    -- Point d'apparition de la voiture achetee (sur la voie devant le terminal).
-    -- Le joueur est mis automatiquement au volant (siege conducteur).
-    spawnPos = vector4(-1041.0, -2743.5, 19.95, 145.0),
+    -- Point d'apparition de la voiture achetee : sur la VOIE de drop-off
+    -- devant le terminal (pas sur les marches, pas sur le trottoir).
+    -- L'altitude z=13.2 correspond au niveau de la route, pas du plateau
+    -- du terminal (z=20.17). Le joueur est mis automatiquement au volant.
+    spawnPos = vector4(-1046.5, -2749.0, 13.20, 145.0),
 
     -- Distance (m) a laquelle le prompt d'interaction apparait.
     interactionDistance = 2.5,

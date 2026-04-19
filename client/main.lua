@@ -168,6 +168,28 @@ local function kickoffIntro()
     TriggerServerEvent('frz-rp-spawn:requestIntro')
 end
 
+local FREEMODE_MODEL = 'mp_m_freemode_01'
+local FREEMODE_HASH  = GetHashKey(FREEMODE_MODEL)
+
+-- Force le modele freemode sur le ped actuel. Utilise apres chaque spawn
+-- pour s'assurer que le joueur n'apparait jamais en Michael/Trevor/Franklin,
+-- meme si un autre script (ou spawnmanager) a tente de restaurer ces modeles.
+local function forceFreemodeModel()
+    if GetEntityModel(PlayerPedId()) == FREEMODE_HASH then return end
+
+    RequestModel(FREEMODE_HASH)
+    local t0 = GetGameTimer()
+    while not HasModelLoaded(FREEMODE_HASH) do
+        Wait(10)
+        if GetGameTimer() - t0 > 5000 then return end
+    end
+
+    SetPlayerModel(PlayerId(), FREEMODE_HASH)
+    SetModelAsNoLongerNeeded(FREEMODE_HASH)
+    -- Composants par defaut (pas les vetements de Michael qui trainent).
+    SetPedDefaultComponentVariation(PlayerPedId())
+end
+
 -- IMPORTANT : on enregistre le callback d'autospawn AU CHARGEMENT de la
 -- ressource (pas dans un thread avec des Wait), sinon spawnmanager a le
 -- temps de declencher son spawn par defaut (= Michael) avant que notre
@@ -180,14 +202,28 @@ if GetResourceState('spawnmanager') == 'started' then
             x = c.x, y = c.y, z = c.z,
             heading = c.w,
             -- Modele freemode par defaut (pas Michael/Trevor/Franklin).
-            model = GetHashKey('mp_m_freemode_01'),
+            model = FREEMODE_MODEL,
             skipFade = false,
         }, function()
+            -- Belt-and-suspenders : si spawnmanager n'a pas applique le
+            -- modele (race condition, modele pas charge a temps, etc.), on
+            -- force le swap ici.
+            forceFreemodeModel()
             kickoffIntro()
         end)
     end)
     exports.spawnmanager:setAutoSpawn(true)
 end
+
+-- Filet de securite final : sur CHAQUE spawn (initial, respawn apres mort,
+-- restart de ressource), on force le modele freemode. Si spawnmanager ou
+-- un autre script a remis Michael, on le swap immediatement.
+AddEventHandler('playerSpawned', function()
+    CreateThread(function()
+        Wait(200) -- laisse spawnmanager finir son taf
+        forceFreemodeModel()
+    end)
+end)
 
 -- Thread de secours : gere le cas restart de ressource en cours de session
 -- (le ped existe deja, spawnmanager n'appellera pas forcement notre callback).

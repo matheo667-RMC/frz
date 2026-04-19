@@ -123,6 +123,13 @@ html, body {
 }
 
 /* ---------- Rental menu (car dealer NPC) ---------- */
+/*
+ * NOTE : on n'utilise PAS backdrop-filter ici. Le CEF embarque dans FiveM
+ * a des bugs avec backdrop-filter qui rendent un rectangle NOIR opaque
+ * derriere la fenetre au lieu d'un flou transparent. Meme raison pour le
+ * box-shadow tres large (0 30px 80px) qui faisait apparaitre une grosse
+ * ombre noire autour du menu. On garde une ombre douce et discrete.
+ */
 #rental {
     position: fixed;
     top: 50%;
@@ -139,10 +146,8 @@ html, body {
     border: 1px solid rgba(180, 150, 255, 0.25);
     border-radius: 16px;
     box-shadow:
-        0 30px 80px rgba(0,0,0,0.8),
-        0 0 0 1px rgba(120,80,255,0.25) inset,
-        0 0 40px rgba(120,80,255,0.08) inset;
-    backdrop-filter: blur(10px);
+        0 8px 24px rgba(0, 0, 0, 0.45),
+        0 0 0 1px rgba(120, 80, 255, 0.25) inset;
     opacity: 0;
     transition: opacity 200ms ease, transform 200ms cubic-bezier(.2,.8,.2,1);
     pointer-events: auto;
