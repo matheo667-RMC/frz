@@ -159,8 +159,19 @@ local function resetJoined(id)
     return false
 end
 
+-- Reinitialise les statuts "premier join" et les positions de tous les
+-- joueurs, mais PRESERVE les autres champs (notamment `money`). Ecraser
+-- l'entree complete avec {} ferait perdre tout l'argent de tout le monde,
+-- ce qui est une perte irrecuperable pour un admin qui veut juste rejouer
+-- la cinematique (comportement attendu par la commande frzresetspawnall).
 local function resetAll()
-    playersData = {}
+    local data = loadPlayersData()
+    for _, entry in pairs(data) do
+        if type(entry) == 'table' then
+            entry.joined  = nil
+            entry.lastPos = nil
+        end
+    end
     markDirty()
     flushNow()
 end
