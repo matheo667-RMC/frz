@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>FRZ Bank</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="root" class="hidden">
+    <div class="backdrop"></div>
+    <div class="atm">
+      <header class="atm-header">
+        <div class="logo">
+          <span class="brand">FRZ</span>
+          <span class="sub">BANK</span>
+        </div>
+        <div class="context" id="context-label">Distributeur</div>
+        <button id="close" aria-label="Fermer">✕</button>
+      </header>
+
+      <div class="atm-body">
+        <aside class="balance-side">
+          <div class="mini-card">
+            <div class="mini-chip"></div>
+            <div class="mini-num">•••• •••• •••• <span id="card-last">••••</span></div>
+            <div class="mini-holder" id="card-holder">TITULAIRE</div>
+          </div>
+          <div class="balance-big">
+            <span>Solde</span>
+            <strong id="balance">0,00 €</strong>
+          </div>
+          <div class="tx-section">
+            <h3>Historique</h3>
+            <div id="tx-list"></div>
+          </div>
+        </aside>
+
+        <main class="actions-side">
+          <div class="grid-menu" id="menu">
+            <button class="act" data-act="deposit">
+              <span class="act-icon">⬇️</span>
+              <span class="act-label">Déposer</span>
+            </button>
+            <button class="act" data-act="withdraw">
+              <span class="act-icon">⬆️</span>
+              <span class="act-label">Retirer</span>
+            </button>
+            <button class="act" data-act="transfer">
+              <span class="act-icon">↔️</span>
+              <span class="act-label">Virement</span>
+            </button>
+            <button class="act" data-act="history">
+              <span class="act-icon">📜</span>
+              <span class="act-label">Historique</span>
+            </button>
+          </div>
+
+          <!-- Panneau montant -->
+          <div class="pane hidden" id="pane-amount">
+            <h2 id="pane-title">Montant</h2>
+            <div class="amount-display" id="amount-display">0 €</div>
+            <div class="qk-row">
+              <button data-qk="50">50 €</button>
+              <button data-qk="100">100 €</button>
+              <button data-qk="500">500 €</button>
+              <button data-qk="1000">1 000 €</button>
+              <button data-qk="5000">5 000 €</button>
+              <button data-qk="10000">10 000 €</button>
+            </div>
+            <div class="keypad">
+              <button class="key" data-k="1">1</button>
+              <button class="key" data-k="2">2</button>
+              <button class="key" data-k="3">3</button>
+              <button class="key" data-k="4">4</button>
+              <button class="key" data-k="5">5</button>
+              <button class="key" data-k="6">6</button>
+              <button class="key" data-k="7">7</button>
+              <button class="key" data-k="8">8</button>
+              <button class="key" data-k="9">9</button>
+              <button class="key" data-k="clear">C</button>
+              <button class="key" data-k="0">0</button>
+              <button class="key" data-k="back">⌫</button>
+            </div>
+            <div class="pane-actions">
+              <button class="secondary" id="cancel-amount">Annuler</button>
+              <button class="primary" id="confirm-amount">Valider</button>
+            </div>
+          </div>
+
+          <!-- Panneau virement -->
+          <div class="pane hidden" id="pane-transfer">
+            <h2>Virement bancaire</h2>
+            <label>Numéro de téléphone du destinataire</label>
+            <input id="transfer-to" placeholder="555-1234" />
+            <label>Montant (€)</label>
+            <input id="transfer-amount" type="number" min="1" placeholder="0" />
+            <div class="pane-actions">
+              <button class="secondary" id="cancel-transfer">Annuler</button>
+              <button class="primary" id="confirm-transfer">Envoyer</button>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <div id="toast" class="toast hidden"></div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

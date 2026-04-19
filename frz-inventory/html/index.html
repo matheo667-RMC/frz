@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>FRZ Inventaire</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="root" class="hidden">
+    <div class="backdrop"></div>
+    <div class="wrapper">
+      <header class="topbar">
+        <h1>FRZ <span>Inventaire</span></h1>
+        <div class="weight-bar">
+          <div id="weight-fill" class="fill"></div>
+          <span id="weight-label">0.0 / 40.0 kg</span>
+        </div>
+        <button id="close" aria-label="Fermer">✕</button>
+      </header>
+
+      <main class="layout">
+        <!-- Colonne gauche : slots vetements (haut du corps) -->
+        <aside class="clothing left" id="clothing-left"></aside>
+
+        <!-- Centre : personnage + slot drop -->
+        <section class="center">
+          <div class="character">
+            <div class="silhouette">
+              <span>Ton personnage</span>
+            </div>
+          </div>
+          <div class="drop-zone" id="drop-zone">
+            <div class="drop-icon">🗑️</div>
+            <div class="drop-label">Jeter au sol</div>
+            <div class="drop-hint">Glissez un item ici</div>
+          </div>
+        </section>
+
+        <!-- Colonne droite : slots vetements (bas du corps / accessoires) -->
+        <aside class="clothing right" id="clothing-right"></aside>
+
+        <!-- Grille d'inventaire -->
+        <section class="grid-section">
+          <h2>Sac à dos</h2>
+          <div id="grid" class="grid"></div>
+        </section>
+      </main>
+
+      <div id="notify" class="notify hidden"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
