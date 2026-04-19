@@ -8,8 +8,18 @@
 --   2. Pour chaque livraison PENDING renvoyee, on livre l'item au joueur
 --      (arme, vehicule, item d'inventaire, argent, VIP) via QBCore.
 --   3. On marque la livraison comme DELIVERED via POST /api/fivem/deliver.
+--
+-- Important : pour un systeme d'argent reel, on confirme DELIVERED au site
+-- AVANT de donner les items au joueur. Si la confirmation HTTP rate, on ne
+-- livre pas et on retentera au prochain poll (at-most-once, evite la double
+-- livraison). Un cache local 'processedIds' empeche aussi les doublons entre
+-- polls pendant la vie du resource.
 
 local QBCore = exports['qb-core']:GetCoreObject()
+
+-- Cache des deliveryId deja traites pendant cette execution du resource.
+-- Evite les doublons si un poll tombe pendant qu'un autre est en cours.
+local processedIds = {}
 
 local function jsonEncode(t)
     return json.encode(t)
@@ -30,6 +40,26 @@ local function getDiscordId(source)
         end
     end
     return nil
+end
+
+--- Recupere le license: d'un joueur FiveM (stable, toujours present).
+local function getLicense(source)
+    for _, id in ipairs(GetPlayerIdentifiers(source)) do
+        if id:sub(1, 8) == "license:" then
+            return id:sub(9)
+        end
+    end
+    return nil
+end
+
+--- Signature d'identite d'un joueur : combine license + citizenid.
+-- Utilisee pour la re-verification apres un appel HTTP asynchrone, au cas ou
+-- le joueur s'est deconnecte et qu'un autre joueur a repris le meme source.
+local function getIdentitySig(source)
+    local license = getLicense(source)
+    local Player = QBCore.Functions.GetPlayer(source)
+    local citizenid = Player and Player.PlayerData and Player.PlayerData.citizenid or nil
+    return (license or "") .. "|" .. (citizenid or "")
 end
 
 local function notify(source, message, type)
@@ -70,7 +100,10 @@ local function deliverPayload(source, Player, payload)
     elseif payload.type == "vehicle" then
         local model = payload.model
         if not model then return false, "vehicle model manquant" end
-        local plate = payload.plate or ("FRZ" .. math.random(100, 999))
+        -- Plaque : 1 lettre + 4 chiffres -> ~234k combinaisons. Reduit fortement
+        -- le risque de collision dans qb-garages vs math.random(100, 999) (900).
+        local plate = payload.plate
+            or ("FRZ" .. string.char(math.random(65, 90)) .. math.random(1000, 9999))
         local citizenid = Player.PlayerData.citizenid
         -- Insertion directe dans la table player_vehicles de QBCore.
         -- La ressource qb-garages detectera le vehicule au prochain chargement.
@@ -105,9 +138,21 @@ end
 
 local function fetchAndDeliverFor(source)
     local discordId = getDiscordId(source)
-    if not discordId then return end
+    local license = getLicense(source)
+    local Player = QBCore.Functions.GetPlayer(source)
+    local citizenid = Player and Player.PlayerData and Player.PlayerData.citizenid or nil
 
-    local url = Config.ShopApiUrl .. "/api/fivem/pending?discordId=" .. discordId
+    -- On construit l'URL avec les 3 identifiants qu'on a : le site resoud par
+    -- priorite license/citizenid (lien fort via /linkshop) puis Discord ID
+    -- (fallback). Au moins un doit etre present.
+    if not discordId and not license and not citizenid then return end
+    local params = {}
+    if license   then params[#params + 1] = "license=" .. license end
+    if citizenid then params[#params + 1] = "citizenid=" .. citizenid end
+    if discordId then params[#params + 1] = "discordId=" .. discordId end
+    local url = Config.ShopApiUrl .. "/api/fivem/pending?" .. table.concat(params, "&")
+    local identitySig = getIdentitySig(source)
+
     PerformHttpRequest(url, function(status, body, _)
         if status ~= 200 or not body then
             if status ~= 0 and status ~= 200 then
@@ -121,36 +166,50 @@ local function fetchAndDeliverFor(source)
         -- Re-verification de l'identite apres l'appel HTTP asynchrone : si le
         -- joueur s'est deconnecte et qu'un autre joueur a repris le meme
         -- source ID, on ne livre pas a la mauvaise personne.
-        local currentDiscordId = getDiscordId(source)
-        if currentDiscordId ~= discordId then return end
+        if getIdentitySig(source) ~= identitySig then return end
 
         local Player = QBCore.Functions.GetPlayer(source)
         if not Player then return end
 
         for _, delivery in ipairs(data.deliveries) do
-            local ok, msg = deliverPayload(source, Player, delivery.payload)
-            if ok and Config.NotifyOnDelivery then
-                notify(source, Config.DeliveryMessageFormat:format(delivery.itemName or msg), "success")
+            if not processedIds[delivery.id] then
+                -- On confirme DELIVERED au site AVANT de donner les items. Si la
+                -- confirmation HTTP echoue, on ne livre pas : la livraison
+                -- reste PENDING cote site et sera retentee au prochain poll.
+                -- Mieux vaut une livraison manquee (reprise auto) qu'une double
+                -- livraison (irreversible sur un achat reel).
+                processedIds[delivery.id] = true
+                PerformHttpRequest(Config.ShopApiUrl .. "/api/fivem/deliver",
+                    function(dStatus, _, _)
+                        if dStatus < 200 or dStatus >= 300 then
+                            -- Confirmation KO : on retire du cache pour
+                            -- retenter au prochain poll.
+                            processedIds[delivery.id] = nil
+                            print(("[frz-rp-shop] deliver confirm HTTP %s, will retry"):format(tostring(dStatus)))
+                            return
+                        end
+                        -- Re-verification de l'identite apres ce 2e HTTP async.
+                        if getIdentitySig(source) ~= identitySig then return end
+                        local Player2 = QBCore.Functions.GetPlayer(source)
+                        if not Player2 then return end
+                        local ok, msg = deliverPayload(source, Player2, delivery.payload)
+                        if ok and Config.NotifyOnDelivery then
+                            notify(source, Config.DeliveryMessageFormat:format(delivery.itemName or msg), "success")
+                        elseif not ok then
+                            print(("[frz-rp-shop] deliverPayload KO: %s"):format(tostring(msg)))
+                        end
+                    end,
+                    "POST",
+                    jsonEncode({
+                        deliveryId = delivery.id,
+                        status = "DELIVERED",
+                    }),
+                    {
+                        ["Content-Type"] = "application/json",
+                        ["Authorization"] = "Bearer " .. Config.ShopApiToken,
+                    }
+                )
             end
-            -- On marque toujours la livraison (sinon boucle infinie).
-            local finalStatus = ok and "DELIVERED" or "FAILED"
-            PerformHttpRequest(Config.ShopApiUrl .. "/api/fivem/deliver",
-                function(dStatus, _, _)
-                    if dStatus < 200 or dStatus >= 300 then
-                        print(("[frz-rp-shop] deliver HTTP %s"):format(tostring(dStatus)))
-                    end
-                end,
-                "POST",
-                jsonEncode({
-                    deliveryId = delivery.id,
-                    status = finalStatus,
-                    note = msg,
-                }),
-                {
-                    ["Content-Type"] = "application/json",
-                    ["Authorization"] = "Bearer " .. Config.ShopApiToken,
-                }
-            )
         end
     end, "GET", "", {
         ["Authorization"] = "Bearer " .. Config.ShopApiToken,
@@ -172,4 +231,50 @@ end)
 QBCore.Commands.Add('shopsync', 'Force la livraison des achats en attente', {}, false, function(source)
     fetchAndDeliverFor(source)
     TriggerClientEvent('QBCore:Notify', source, 'Synchronisation boutique lancee…', 'primary')
+end)
+
+-- Lie le personnage QBCore actuel au compte shop (Discord) qui a genere le
+-- code sur /account. Apres liaison, les livraisons sont routees par
+-- license/citizenid → ca garantit que la voiture atterrit sur CE personnage,
+-- meme si Discord n'est pas ouvert pendant que le joueur joue.
+QBCore.Commands.Add('linkshop', 'Lie ton compte FiveM au shop FRZ RP', {
+    { name = 'code', help = 'Code affiche sur ton compte shop' },
+}, true, function(source, args)
+    local code = args[1]
+    if not code or code == "" then
+        notify(source, "Usage: /linkshop <code>", "error")
+        return
+    end
+    local license = getLicense(source)
+    local Player = QBCore.Functions.GetPlayer(source)
+    if not Player or not license then
+        notify(source, "Impossible de lire ton personnage QBCore", "error")
+        return
+    end
+    local citizenid = Player.PlayerData.citizenid
+
+    PerformHttpRequest(Config.ShopApiUrl .. "/api/fivem/link",
+        function(status, body, _)
+            if status >= 200 and status < 300 then
+                notify(source, "Compte shop lie a ce personnage ✓", "success")
+                -- Declenche un poll immediat pour recuperer les achats
+                -- en attente sur le nouveau lien.
+                fetchAndDeliverFor(source)
+                return
+            end
+            local data = jsonDecode(body or "") or {}
+            local msg = data.message or ("Erreur HTTP " .. tostring(status))
+            notify(source, msg, "error")
+        end,
+        "POST",
+        jsonEncode({
+            code = code:upper(),
+            license = license,
+            citizenid = citizenid,
+        }),
+        {
+            ["Content-Type"] = "application/json",
+            ["Authorization"] = "Bearer " .. Config.ShopApiToken,
+        }
+    )
 end)

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatPrice, formatDate } from "@/lib/format";
+import { FivemLinkCard } from "@/components/FivemLinkCard";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,7 @@ export default async function AccountPage() {
   const session = await getSession();
   if (!session) redirect("/api/auth/discord");
 
-  const [orders, deliveries] = await Promise.all([
+  const [orders, deliveries, fivemLink] = await Promise.all([
     prisma.order.findMany({
       where: { userId: session.userId },
       orderBy: { createdAt: "desc" },
@@ -23,7 +24,20 @@ export default async function AccountPage() {
       include: { item: true },
       take: 50,
     }),
+    prisma.fivemLink.findUnique({
+      where: { userId: session.userId },
+    }),
   ]);
+
+  const linkInitial = fivemLink
+    ? {
+        code: fivemLink.code,
+        linked: Boolean(fivemLink.linkedAt),
+        linkedAt: fivemLink.linkedAt?.toISOString() ?? null,
+        license: fivemLink.license,
+        citizenid: fivemLink.citizenid,
+      }
+    : null;
 
   return (
     <div className="mt-8 space-y-10">
@@ -33,6 +47,11 @@ export default async function AccountPage() {
           Connecte en tant que <strong>{session.username}</strong> (Discord ID:{" "}
           <code className="text-white/80">{session.discordId}</code>)
         </p>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-xl font-bold">Lien FiveM</h2>
+        <FivemLinkCard initial={linkInitial} />
       </section>
 
       <section>

@@ -20,6 +20,26 @@ model User {
   createdAt   DateTime   @default(now())
   orders      Order[]
   deliveries  Delivery[]
+  fivemLink   FivemLink?
+}
+
+// Lien entre un compte du shop (Discord) et un personnage QBCore sur le serveur
+// FiveM. Le joueur genere un code depuis /account, tape `/linkshop <code>`
+// in-game, la resource appelle POST /api/fivem/link et attache license +
+// citizenid. Apres lien, les livraisons sont routees par license/citizenid en
+// plus du Discord ID (garantit que la voiture atterrit sur le bon personnage,
+// meme si Discord n'est pas ouvert au moment de jouer).
+model FivemLink {
+  id         String    @id @default(cuid())
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id])
+  // Code a usage unique, affiche sur /account, tape par le joueur in-game.
+  code       String    @unique
+  // Une fois /linkshop reussi : identifiants FiveM/QBCore du joueur.
+  license    String?   @unique
+  citizenid  String?   @unique
+  linkedAt   DateTime?
+  createdAt  DateTime  @default(now())
 }
 
 model Item {
