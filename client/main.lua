@@ -133,11 +133,49 @@ end)
 -- Demande au serveur quelle scene jouer des que le joueur est pret.
 -- Flag local pour eviter de re-emettre sur restart de ressource en cours de session.
 local introRequested = false
-CreateThread(function()
-    while not NetworkIsPlayerActive(PlayerId()) do Wait(250) end
-    while not DoesEntityExist(PlayerPedId()) do Wait(250) end
+
+local function kickoffIntro()
     if introRequested then return end
     introRequested = true
-    Wait(1000)
+    Wait(500)
     TriggerServerEvent('frz-rp-spawn:requestIntro')
+end
+
+-- Integration avec spawnmanager : sans basic-gamemode (que l'utilisateur a
+-- desactive parce qu'il ecrasait notre spawn), spawnmanager n'a pas de
+-- callback d'autospawn, et le joueur reste bloque sur "Awaiting scripts" sans
+-- jamais avoir de personnage. On prend donc la relai : on enregistre un
+-- callback qui fait spawner le joueur a l'aeroport (modele freemode), puis on
+-- declenche notre cinematique.
+CreateThread(function()
+    while not NetworkIsPlayerActive(PlayerId()) do Wait(250) end
+
+    if GetResourceState('spawnmanager') == 'started' then
+        exports.spawnmanager:setAutoSpawnCallback(function()
+            local c = Config.SpawnCoords
+            exports.spawnmanager:spawnPlayer({
+                x = c.x, y = c.y, z = c.z,
+                heading = c.w,
+                model = GetHashKey('mp_m_freemode_01'),
+                skipFade = false,
+            }, function()
+                kickoffIntro()
+            end)
+        end)
+        exports.spawnmanager:setAutoSpawn(true)
+
+        -- Premier run : si le ped n'existe pas encore (= pas de basic-gamemode
+        -- qui aurait deja spawne), on force le respawn via notre callback.
+        if not DoesEntityExist(PlayerPedId()) then
+            exports.spawnmanager:forceRespawn()
+            return
+        end
+    end
+
+    -- Cas ou le ped existe deja (restart de ressource en cours de session,
+    -- ou pas de spawnmanager disponible) : on enchaine directement sur la
+    -- cinematique sans respawn.
+    while not DoesEntityExist(PlayerPedId()) do Wait(250) end
+    Wait(500)
+    kickoffIntro()
 end)
