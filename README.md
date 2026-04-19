@@ -39,7 +39,7 @@ le setup detaille.
    ```
    Puis copier les sous-dossiers :
    ```bash
-   cp -r frz fiz-rp-spawn
+   cp -r frz frz-rp-spawn
    cp -r frz/fivem-shop .
    ```
 2. Ajouter au `server.cfg` :

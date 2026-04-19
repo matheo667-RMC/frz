@@ -40,7 +40,8 @@ export async function POST(req: Request) {
     data: {
       status: parsed.data.status,
       note: parsed.data.note,
-      deliveredAt: new Date(),
+      deliveredAt:
+        parsed.data.status === "DELIVERED" ? new Date() : null,
     },
   });
   return NextResponse.json({ ok: true });

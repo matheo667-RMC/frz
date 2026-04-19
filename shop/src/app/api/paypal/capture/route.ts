@@ -52,16 +52,22 @@ export async function POST(req: Request) {
     });
 
     if (paid) {
-      // Cree une livraison PENDING que FiveM ira consommer.
-      await prisma.delivery.create({
-        data: {
-          orderId: order.id,
-          userId: order.userId,
-          itemId: order.itemId,
-          payload: order.item.payload,
-          status: "PENDING",
-        },
+      // Evite les doublons si la capture est appelee plusieurs fois (retries,
+      // race entre /checkout/success et cette route, etc.).
+      const existing = await prisma.delivery.findFirst({
+        where: { orderId: order.id },
       });
+      if (!existing) {
+        await prisma.delivery.create({
+          data: {
+            orderId: order.id,
+            userId: order.userId,
+            itemId: order.itemId,
+            payload: order.item.payload,
+            status: "PENDING",
+          },
+        });
+      }
     }
 
     return NextResponse.json({ status: updated.status });
