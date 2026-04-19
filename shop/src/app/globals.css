@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #05060a;
+  --bg-soft: #0b0d14;
+  --card: #10131c;
+  --card-hover: #161a26;
+  --border: #1f2535;
+  --text: #e6e9f2;
+  --text-muted: #9aa3b8;
+  --accent: #ffd93d;      /* jaune GTA-like */
+  --accent-2: #22d3ee;    /* cyan neon */
+  --danger: #ef4444;
+  --success: #22c55e;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(34, 211, 238, 0.08), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(255, 217, 61, 0.06), transparent 60%),
+    var(--bg);
+  min-height: 100vh;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #ffd93d, #ffb020);
+    color: #111;
+  }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-ghost {
+    @apply border border-white/10 text-white/90 hover:bg-white/5;
+  }
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-500;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    @apply rounded-xl;
+  }
+  .card:hover { background: var(--card-hover); }
+  .chip {
+    @apply inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-white/80;
+  }
+  .input {
+    @apply w-full rounded-md bg-black/40 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-yellow-400/60;
+  }
+  .label { @apply text-xs font-medium uppercase tracking-wide text-white/60; }
+}
