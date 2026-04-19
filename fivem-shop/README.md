@@ -66,5 +66,8 @@ Logs serveur : `[frz-rp-shop] ...` en cas de probleme HTTP.
 - L'API du site ne delivre que les livraisons `PENDING` pour l'identifiant
   fourni (license/citizenid ou Discord ID), donc meme une fuite de token ne
   permettrait pas d'obtenir plus que des items deja payes.
-- La confirmation `DELIVERED` est envoyee AVANT de donner les items au joueur :
-  si l'appel HTTP rate, on retente au prochain poll plutot que de livrer 2x.
+- Les items sont livres en jeu d'abord, puis on confirme `DELIVERED` au site.
+  Si la confirmation HTTP rate, la livraison reste `PENDING` en DB — a un
+  admin de passer la delivery a `DELIVERED` apres verification. Un cache
+  local (`processedIds`) empeche les doublons entre polls au sein du meme
+  run de la ressource.

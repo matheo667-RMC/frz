@@ -9,11 +9,19 @@
 --      (arme, vehicule, item d'inventaire, argent, VIP) via QBCore.
 --   3. On marque la livraison comme DELIVERED via POST /api/fivem/deliver.
 --
--- Important : pour un systeme d'argent reel, on confirme DELIVERED au site
--- AVANT de donner les items au joueur. Si la confirmation HTTP rate, on ne
--- livre pas et on retentera au prochain poll (at-most-once, evite la double
--- livraison). Un cache local 'processedIds' empeche aussi les doublons entre
--- polls pendant la vie du resource.
+-- Important : pour un systeme d'argent reel, on livre les items d'abord puis
+-- on confirme DELIVERED au site. C'est le moindre mal entre deux risques :
+--   * Confirmer avant livrer = items perdus si le joueur deco entre les deux
+--     (le site considere la livraison faite, refuse de rejouer).
+--   * Livrer avant confirmer = risque de double livraison si la confirmation
+--     HTTP rate, car la livraison reste PENDING et sera retentee.
+-- On choisit le 2e : "items perdus" est pire qu'un double-send pour un achat
+-- reel (detection + correction admin triviale vs. customer furieux).
+-- Le cache local 'processedIds' (marque AVANT la livraison) empeche les
+-- doublons entre polls pendant la vie du resource. Seul un restart du
+-- resource avec une confirmation HTTP ayant rate peut entrainer un double
+-- send — rare, detectable (log 'deliver confirm HTTP != 2xx'), corrigeable
+-- par l'admin en passant la delivery a DELIVERED a la main.
 
 local QBCore = exports['qb-core']:GetCoreObject()
 
@@ -173,36 +181,35 @@ local function fetchAndDeliverFor(source)
 
         for _, delivery in ipairs(data.deliveries) do
             if not processedIds[delivery.id] then
-                -- On confirme DELIVERED au site AVANT de donner les items. Si la
-                -- confirmation HTTP echoue, on ne livre pas : la livraison
-                -- reste PENDING cote site et sera retentee au prochain poll.
-                -- Mieux vaut une livraison manquee (reprise auto) qu'une double
-                -- livraison (irreversible sur un achat reel).
+                -- Marque AVANT pour eviter les doublons si 2 polls se
+                -- chevauchent (ex: /shopsync declenche pendant un poll auto).
                 processedIds[delivery.id] = true
+
+                -- Livraison synchrone via QBCore (AddItem, insert vehicule…).
+                local ok, msg = deliverPayload(source, Player, delivery.payload)
+                if ok and Config.NotifyOnDelivery then
+                    notify(source, Config.DeliveryMessageFormat:format(delivery.itemName or msg), "success")
+                elseif not ok then
+                    print(("[frz-rp-shop] deliverPayload KO: %s"):format(tostring(msg)))
+                end
+
+                -- Confirme le statut au site APRES livraison. Si l'HTTP
+                -- echoue, la livraison reste PENDING cote DB → un admin peut
+                -- manuellement passer la delivery a DELIVERED. On ne retente
+                -- PAS automatiquement (on ne retire pas de processedIds),
+                -- sinon le prochain poll redonnerait les items.
+                local finalStatus = ok and "DELIVERED" or "FAILED"
                 PerformHttpRequest(Config.ShopApiUrl .. "/api/fivem/deliver",
                     function(dStatus, _, _)
                         if dStatus < 200 or dStatus >= 300 then
-                            -- Confirmation KO : on retire du cache pour
-                            -- retenter au prochain poll.
-                            processedIds[delivery.id] = nil
-                            print(("[frz-rp-shop] deliver confirm HTTP %s, will retry"):format(tostring(dStatus)))
-                            return
-                        end
-                        -- Re-verification de l'identite apres ce 2e HTTP async.
-                        if getIdentitySig(source) ~= identitySig then return end
-                        local Player2 = QBCore.Functions.GetPlayer(source)
-                        if not Player2 then return end
-                        local ok, msg = deliverPayload(source, Player2, delivery.payload)
-                        if ok and Config.NotifyOnDelivery then
-                            notify(source, Config.DeliveryMessageFormat:format(delivery.itemName or msg), "success")
-                        elseif not ok then
-                            print(("[frz-rp-shop] deliverPayload KO: %s"):format(tostring(msg)))
+                            print(("[frz-rp-shop] deliver confirm HTTP %s pour delivery %s - items livres mais DB pas a jour, revoir manuellement"):format(tostring(dStatus), tostring(delivery.id)))
                         end
                     end,
                     "POST",
                     jsonEncode({
                         deliveryId = delivery.id,
-                        status = "DELIVERED",
+                        status = finalStatus,
+                        note = ok and nil or msg,
                     }),
                     {
                         ["Content-Type"] = "application/json",
