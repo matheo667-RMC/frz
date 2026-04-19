@@ -102,11 +102,13 @@ Config.CarRental = {
     -- 'a_m_y_business_03' (businessman), 'ig_rashcosvki' (dealer).
     pedModel = 's_m_m_lsmetro_01',
 
-    -- Point d'apparition de la voiture achetee : sur la VOIE de drop-off
-    -- devant le terminal (pas sur les marches, pas sur le trottoir).
-    -- L'altitude z=13.2 correspond au niveau de la route, pas du plateau
-    -- du terminal (z=20.17). Le joueur est mis automatiquement au volant.
-    spawnPos = vector4(-1046.5, -2749.0, 13.20, 145.0),
+    -- Point d'apparition de la voiture achetee : approximativement sur la
+    -- voie de drop-off NORD du terminal (cote depart / "Fly US"). Le
+    -- client snap automatiquement vers le road node le plus proche, donc
+    -- meme si ces coords sont un peu off, la voiture atterrira sur une
+    -- vraie route (pas dans un escalier / un trottoir / sous une rampe).
+    -- Le joueur est mis automatiquement au volant.
+    spawnPos = vector4(-1033.0, -2718.0, 13.76, 240.0),
 
     -- Distance (m) a laquelle le prompt d'interaction apparait.
     interactionDistance = 2.5,

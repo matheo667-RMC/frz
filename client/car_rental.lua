@@ -272,6 +272,20 @@ local function resolveColor(key)
     return Config.CarRental.colors[key]
 end
 
+-- Snap a position vers le road node le plus proche (garantit qu'on tombe
+-- sur une vraie route, pas sur des escaliers / un trottoir / une zone
+-- piétonne). Retourne (x, y, z, heading) de la route. Si aucune route
+-- n'est trouvée dans un rayon raisonnable, on retourne la position d'origine.
+local function snapToNearestRoad(x, y, z, fallbackHeading)
+    -- nodeType = 1 = route standard ; 3 = route + lanes.
+    local ok, roadX, roadY, roadZ, roadHeading =
+        GetClosestVehicleNodeWithHeading(x, y, z, 1, 3.0, 0)
+    if ok and roadX and roadY then
+        return roadX, roadY, roadZ, roadHeading
+    end
+    return x, y, z, fallbackHeading or 0.0
+end
+
 function FrzSpawn.spawnRentedVehicle(modelName)
     local sp = Config.CarRental and Config.CarRental.spawnPos
     if not sp then return false end
@@ -284,8 +298,14 @@ function FrzSpawn.spawnRentedVehicle(modelName)
         return false
     end
 
+    -- On snap vers le road node le plus proche : les coords de config sont
+    -- une hint, mais c'est le jeu qui decide ou est la route reelle. Ca
+    -- evite de faire spawner une voiture dans un escalier / un trottoir /
+    -- sous une rampe, meme si les coords sont un peu off.
+    local spawnX, spawnY, spawnZ, spawnH = snapToNearestRoad(sp.x, sp.y, sp.z, sp.w)
+
     -- isNetwork = true pour que les autres joueurs voient le vehicule.
-    local veh = CreateVehicle(model, sp.x, sp.y, sp.z, sp.w, true, false)
+    local veh = CreateVehicle(model, spawnX, spawnY, spawnZ, spawnH, true, false)
     if not DoesEntityExist(veh) then
         SetModelAsNoLongerNeeded(model)
         return false
@@ -331,3 +351,27 @@ RegisterNUICallback('close', function(_, cb)
     closeMenu()
     cb({ ok = true })
 end)
+
+-- ============================================================================
+-- Commande utilitaire : /frzwhereami
+-- Affiche les coords + heading actuels du joueur dans la console F8 et dans
+-- la notification in-game. Utile pour recuperer la position exacte a mettre
+-- dans Config.CarRental.spawnPos ou Config.CarRental.pedPos.
+-- ============================================================================
+RegisterCommand('frzwhereami', function()
+    local ped = PlayerPedId()
+    if not DoesEntityExist(ped) then return end
+    local c = GetEntityCoords(ped)
+    local h = GetEntityHeading(ped)
+    local str = ('vector4(%.2f, %.2f, %.2f, %.1f)'):format(c.x, c.y, c.z, h)
+    print('[frz-rp-spawn] /frzwhereami -> ' .. str)
+    BeginTextCommandThefeedPost('STRING')
+    AddTextComponentSubstringPlayerName(str)
+    EndTextCommandThefeedPostTicker(false, true)
+    -- Affiche aussi en chat (si le chat est active) pour copier-coller facile.
+    TriggerEvent('chat:addMessage', {
+        color = { 180, 150, 255 },
+        multiline = true,
+        args = { 'FRZ', str },
+    })
+end, false)
