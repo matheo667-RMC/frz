@@ -54,21 +54,20 @@ export default async function SuccessPage({
       });
       status = updated.status;
       if (paid) {
-        // Evite les doublons si l'utilisateur rafraichit la page.
-        const existing = await prisma.delivery.findFirst({
+        // Upsert atomique : Delivery.orderId est @unique, donc meme si
+        // l'utilisateur rafraichit la page ou que /api/paypal/capture est
+        // appele en parallele, on n'aura qu'une seule livraison.
+        await prisma.delivery.upsert({
           where: { orderId: order.id },
+          update: {},
+          create: {
+            orderId: order.id,
+            userId: order.userId,
+            itemId: order.itemId,
+            payload: order.item.payload,
+            status: "PENDING",
+          },
         });
-        if (!existing) {
-          await prisma.delivery.create({
-            data: {
-              orderId: order.id,
-              userId: order.userId,
-              itemId: order.itemId,
-              payload: order.item.payload,
-              status: "PENDING",
-            },
-          });
-        }
       }
     } catch (err) {
       console.error("Capture error on success page", err);

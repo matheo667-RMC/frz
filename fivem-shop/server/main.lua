@@ -118,6 +118,12 @@ local function fetchAndDeliverFor(source)
         local data = jsonDecode(body)
         if not data or not data.deliveries then return end
 
+        -- Re-verification de l'identite apres l'appel HTTP asynchrone : si le
+        -- joueur s'est deconnecte et qu'un autre joueur a repris le meme
+        -- source ID, on ne livre pas a la mauvaise personne.
+        local currentDiscordId = getDiscordId(source)
+        if currentDiscordId ~= discordId then return end
+
         local Player = QBCore.Functions.GetPlayer(source)
         if not Player then return end
 

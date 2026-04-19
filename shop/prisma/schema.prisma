@@ -63,7 +63,10 @@ model Order {
 
 model Delivery {
   id         String    @id @default(cuid())
-  orderId    String
+  // Une seule livraison par commande : garde-fou contre la double livraison
+  // si la capture PayPal est traitee par /checkout/success et /api/paypal/capture
+  // en parallele (refresh rapide, retries, etc.).
+  orderId    String    @unique
   order      Order     @relation(fields: [orderId], references: [id])
   userId     String
   user       User      @relation(fields: [userId], references: [id])
