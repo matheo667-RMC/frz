@@ -203,10 +203,16 @@
 
             const meta = document.createElement('div');
             meta.className = 'rental-card-meta';
-            const colorLabel = (v.color || 'standard').toUpperCase();
-            meta.innerHTML = '<span>' + String(v.model || '').toUpperCase() + '</span>'
-                + '<span class="rental-card-dot">&middot;</span>'
-                + '<span>' + colorLabel + '</span>';
+            const modelSpan = document.createElement('span');
+            modelSpan.textContent = String(v.model || '').toUpperCase();
+            const dotSpan = document.createElement('span');
+            dotSpan.className = 'rental-card-dot';
+            dotSpan.textContent = '\u00B7'; // middle dot
+            const colorSpan = document.createElement('span');
+            colorSpan.textContent = (v.color || 'standard').toUpperCase();
+            meta.appendChild(modelSpan);
+            meta.appendChild(dotSpan);
+            meta.appendChild(colorSpan);
 
             info.appendChild(label);
             info.appendChild(meta);

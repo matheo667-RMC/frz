@@ -124,10 +124,15 @@ RegisterNetEvent('frz-rp-spawn:rentVehicle', function(model)
 
     -- Enregistre un token de remboursement : si le spawn cote client echoue
     -- dans les PENDING_REFUND_TTL ms, on rembourse. Une seule fois.
+    -- On stocke aussi le license id du joueur : en cas de deconnexion avant
+    -- confirmation de spawn, le handler playerDropped n'a plus acces au cache
+    -- srcToLicense (deja nettoye par server/main.lua en premier), il faut donc
+    -- l'id en dur dans le token pour pouvoir rembourser.
     pendingRefunds[src] = {
         model = entry.model,
         price = price,
         createdAt = GetGameTimer(),
+        license = id,
     }
 
     TriggerClientEvent('frz-rp-spawn:rentalResult', src, {
@@ -214,10 +219,27 @@ CreateThread(function()
     end
 end)
 
--- Nettoyage a la deconnexion pour eviter de garder des tokens zombies.
+-- Nettoyage a la deconnexion : si le joueur avait un token de remboursement
+-- pas encore resolu (deconnexion / crash pendant le chargement du modele cote
+-- client), on le rembourse avant d'effacer le token, sinon il perd son argent
+-- sans avoir recu la voiture.
+--
+-- On utilise le license id stocke dans le token parce que srcToLicense est
+-- deja nettoye par server/main.lua (handler enregistre avant celui-ci dans
+-- fxmanifest.lua), donc FrzMoney_LicenseOfSource(src) renverrait nil ici.
 AddEventHandler('playerDropped', function()
-    pendingRefunds[source] = nil
-    lastRentAt[source] = nil
+    local src = source
+    local pending = pendingRefunds[src]
+    if pending and pending.license and (pending.price or 0) > 0 then
+        local now = GetGameTimer()
+        if now - (pending.createdAt or 0) <= PENDING_REFUND_TTL then
+            FrzMoney_Add(pending.license, pending.price)
+            print(('[frz-rp-spawn] Remboursement %d $ (deconnexion pendant spawn) -> %s'):format(
+                pending.price, pending.license))
+        end
+    end
+    pendingRefunds[src] = nil
+    lastRentAt[src] = nil
 end)
 
 -- ============================================================================
