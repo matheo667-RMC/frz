@@ -29,35 +29,42 @@ Config.PilotModel = 's_m_m_pilot_01'
 
 -- Position initiale de l'avion (sur la trajectoire d'approche, en altitude).
 -- Format : vector4(x, y, z, heading). Heading pointe vers le debut de piste.
--- On demarre proche (~700 m du seuil de piste) et bas (90 m d'altitude) pour
--- que l'avion soit GROS et bien visible a la camera, puis descend et touche
--- la piste avant la fin de la cinematique.
-Config.PlaneSpawn = vector4(-703.0, -3255.0, 90.0, 245.0)
+-- On demarre TRES proche (~350 m du seuil de piste) et bas (60 m d'altitude)
+-- pour avoir un plan ferme et cinematique type "Paris Live RP" : l'avion
+-- passe gros a l'ecran, descend vers la piste, puis fade to black avant
+-- le touchdown reel.
+Config.PlaneSpawn = vector4(-1025.0, -3151.0, 60.0, 245.0)
 
--- Vitesse initiale de l'avion (plus rapide = on voit bien l'avion descendre).
-Config.PlaneSpeed = 70.0
+-- Vitesse initiale de l'avion (approche rapide pour que ca soit dynamique).
+Config.PlaneSpeed = 65.0
 
 -- Coordonnees de la piste d'atterrissage LSIA (depart / fin).
 Config.RunwayStart = vector3(-1336.0, -3044.0, 13.95)
 Config.RunwayEnd   = vector3(-1659.0, -2942.0, 13.95)
 
 -- Position et rotation de la camera cinematique pendant l'atterrissage.
--- Camera placee a mi-chemin entre le spawn de l'avion et la piste, sur le cote,
--- pour un shot cinematique 3/4 arriere pendant que l'avion descend.
-Config.CameraPosition = vector3(-1050.0, -3120.0, 55.0)
-Config.CameraRotation = vector3(-5.0, 0.0, 245.0)
+-- Camera ~110 m a cote de la trajectoire d'approche, tres proche du spawn
+-- de l'avion, legerement en contrebas pour voir l'avion passer au-dessus /
+-- devant. PointCamAtEntity suit l'avion automatiquement.
+Config.CameraPosition = vector3(-1155.0, -3080.0, 25.0)
+Config.CameraRotation = vector3(-3.0, 0.0, 220.0)
 
 -- Delai (ms depuis le debut de la cinematique) avant de declencher le son
--- d'atterrissage (bruit d'avion + touchdown). Calibre pour correspondre
--- au moment ou l'avion touche la piste visuellement.
-Config.LandingSoundDelay = 9000
+-- d'atterrissage. Plus tot car la camera est plus proche de l'avion des
+-- les premieres secondes.
+Config.LandingSoundDelay = 3500
 
 -- Duree du title card affiche au debut (ms).
 Config.TitleCardDuration = 3000
 
--- Duree totale de la cinematique (ms) : title card + observation de l'avion.
--- On laisse assez de temps pour que l'avion descende de 90m a 15m sur ~700m.
-Config.CinematicDuration = 15000
+-- Instant (ms depuis le debut de la cinematique) auquel on declenche le
+-- fade to black. L'atterrissage "visuel" se passe pendant le noir, avec
+-- le son qui peak, comme dans les serveurs FiveM RP style Paris Live.
+Config.FadeToBlackAt = 9000
+
+-- Duree totale de la cinematique (ms) : observation puis noir + son.
+-- = FadeToBlackAt + duree du noir avant le fade-in au terminal.
+Config.CinematicDuration = 12500
 
 -- Duree d'affichage de la banniere d'annonce (ms).
 -- Doit etre >= duree du fichier audio 'html/welcome_fr.ogg' (~16 s).

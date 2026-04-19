@@ -5,6 +5,13 @@ local introPlayed   = false
 local introRunning  = false
 local welcomePlayed = false
 
+-- On shutdown immediatement le loading screen du NUI FiveM, sinon il peut
+-- rester affiche ("Awaiting scripts...") au-dessus de notre cinematique
+-- tant qu'il n'a pas ete explicitement ferme par un gamemode (basic-gamemode
+-- le faisait, il est desactive ici).
+ShutdownLoadingScreenNui()
+ShutdownLoadingScreen()
+
 local function fadeOut(ms)
     DoScreenFadeOut(ms or 500)
     local t0 = GetGameTimer()
@@ -58,6 +65,12 @@ function FrzSpawn.playIntro()
 
     teleportToAirport()
 
+    -- Color grading cinematique : teinte plus chaude + contraste pour un
+    -- rendu "plus beau" a l'ecran pendant la cinematique. Restaure avant la
+    -- banniere de bienvenue pour ne pas biaiser le gameplay apres.
+    SetTimecycleModifier('hud_def_blur')
+    SetTimecycleModifierStrength(0.3)
+
     local plane, pilot = FrzSpawn.spawnPlane()
 
     FrzSpawn.createCam(Config.CameraPosition, Config.CameraRotation)
@@ -73,14 +86,28 @@ function FrzSpawn.playIntro()
     Wait(Config.TitleCardDuration or 3000)
     FrzSpawn.hideTitleCard()
 
-    local remaining = (Config.CinematicDuration or 12000) - (Config.TitleCardDuration or 3000)
-    if remaining > 0 then Wait(remaining) end
+    -- Phase observation de l'avion (avion qui descend + passe devant la cam)
+    -- puis fade to black avant le touchdown reel. L'atterrissage "vrai" a
+    -- lieu pendant l'ecran noir, ce qui evite de devoir perfectement timer
+    -- le touchdown.
+    local total        = Config.CinematicDuration or 12000
+    local titleDur     = Config.TitleCardDuration or 3000
+    local fadeToBlackAt = Config.FadeToBlackAt or 10000
+    local observeDur   = math.max(0, fadeToBlackAt - titleDur)
+    local blackDur     = math.max(0, total - fadeToBlackAt)
 
-    fadeOut(600)
+    if observeDur > 0 then Wait(observeDur) end
+
+    -- Fade to black : le son d'avion peak pendant le noir.
+    fadeOut(900)
+    if blackDur > 0 then Wait(blackDur) end
 
     FrzSpawn.cleanupPlane(plane, pilot)
     FrzSpawn.destroyCam()
     FrzSpawn.stopPlaneLandingSound()
+
+    -- Restaure le color grading normal.
+    ClearTimecycleModifier()
 
     -- Re-resolution du ped : le handle peut etre stale apres ~15 s.
     ped = PlayerPedId()
@@ -88,9 +115,9 @@ function FrzSpawn.playIntro()
     FreezeEntityPosition(ped, false)
     SetEntityInvincible(ped, false)
 
-    fadeIn(800)
+    fadeIn(900)
 
-    Wait(500)
+    Wait(400)
     FrzSpawn.showAnnouncement(Config.WelcomeMessage, Config.WelcomeSubtitle, true)
 
     Wait(Config.AnnouncementDuration or 17000)
@@ -141,40 +168,41 @@ local function kickoffIntro()
     TriggerServerEvent('frz-rp-spawn:requestIntro')
 end
 
--- Integration avec spawnmanager : sans basic-gamemode (que l'utilisateur a
--- desactive parce qu'il ecrasait notre spawn), spawnmanager n'a pas de
--- callback d'autospawn, et le joueur reste bloque sur "Awaiting scripts" sans
--- jamais avoir de personnage. On prend donc la relai : on enregistre un
--- callback qui fait spawner le joueur a l'aeroport (modele freemode), puis on
--- declenche notre cinematique.
+-- IMPORTANT : on enregistre le callback d'autospawn AU CHARGEMENT de la
+-- ressource (pas dans un thread avec des Wait), sinon spawnmanager a le
+-- temps de declencher son spawn par defaut (= Michael) avant que notre
+-- callback soit attache, et le joueur apparait en Michael au lieu de
+-- mp_m_freemode_01.
+if GetResourceState('spawnmanager') == 'started' then
+    exports.spawnmanager:setAutoSpawnCallback(function()
+        local c = Config.SpawnCoords
+        exports.spawnmanager:spawnPlayer({
+            x = c.x, y = c.y, z = c.z,
+            heading = c.w,
+            -- Modele freemode par defaut (pas Michael/Trevor/Franklin).
+            model = GetHashKey('mp_m_freemode_01'),
+            skipFade = false,
+        }, function()
+            kickoffIntro()
+        end)
+    end)
+    exports.spawnmanager:setAutoSpawn(true)
+end
+
+-- Thread de secours : gere le cas restart de ressource en cours de session
+-- (le ped existe deja, spawnmanager n'appellera pas forcement notre callback).
 CreateThread(function()
     while not NetworkIsPlayerActive(PlayerId()) do Wait(250) end
 
-    if GetResourceState('spawnmanager') == 'started' then
-        exports.spawnmanager:setAutoSpawnCallback(function()
-            local c = Config.SpawnCoords
-            exports.spawnmanager:spawnPlayer({
-                x = c.x, y = c.y, z = c.z,
-                heading = c.w,
-                model = GetHashKey('mp_m_freemode_01'),
-                skipFade = false,
-            }, function()
-                kickoffIntro()
-            end)
-        end)
-        exports.spawnmanager:setAutoSpawn(true)
-
-        -- Premier run : si le ped n'existe pas encore (= pas de basic-gamemode
-        -- qui aurait deja spawne), on force le respawn via notre callback.
-        if not DoesEntityExist(PlayerPedId()) then
-            exports.spawnmanager:forceRespawn()
-            return
-        end
+    if GetResourceState('spawnmanager') == 'started'
+       and not DoesEntityExist(PlayerPedId()) then
+        -- Joueur connecte mais pas encore spawn : on force notre callback.
+        exports.spawnmanager:forceRespawn()
+        return
     end
 
-    -- Cas ou le ped existe deja (restart de ressource en cours de session,
-    -- ou pas de spawnmanager disponible) : on enchaine directement sur la
-    -- cinematique sans respawn.
+    -- Ped deja spawn (restart mid-session) : on enchaine directement sur la
+    -- cinematique sans re-spawn.
     while not DoesEntityExist(PlayerPedId()) do Wait(250) end
     Wait(500)
     kickoffIntro()
