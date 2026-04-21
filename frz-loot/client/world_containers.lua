@@ -69,19 +69,26 @@ local function searchAnimation()
     ClearPedTasks(ped)
 end
 
+-- Boucle principale : on scanne lentement quand rien a proximite (Wait 500),
+-- mais des qu'un container est detecte on passe en per-frame (Wait 0) pour
+-- que drawText3D affiche le prompt en continu et que IsControlJustReleased
+-- capte bien la touche E (les deux ne vivent qu'une frame a la fois).
 CreateThread(function()
+    local sleep = 500
     while true do
-        Wait(500)
+        Wait(sleep)
+        sleep = 500
+
         local ped = PlayerPedId()
         if DoesEntityExist(ped) and not IsPedDeadOrDying(ped, true) then
             local obj, kind, modelName = findNearestContainer()
             if obj then
+                sleep = 0
                 local key = containerKey(obj)
+                local coords = GetEntityCoords(obj)
                 if isOnCooldown(key) then
-                    local coords = GetEntityCoords(obj)
                     frzCore:drawText3D(coords.x, coords.y, coords.z + 0.5, 'Deja fouille')
                 else
-                    local coords = GetEntityCoords(obj)
                     frzCore:drawText3D(coords.x, coords.y, coords.z + 0.5, '[E] Fouiller')
                     if IsControlJustReleased(0, 38) then -- E
                         cooldowns[key] = GetGameTimer()

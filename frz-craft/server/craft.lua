@@ -36,20 +36,27 @@ RegisterNetEvent('frz-craft:requestCraft', function(recipeId)
         end
     end
 
-    -- Retire les inputs.
+    -- Retire les inputs. On garde la liste des items reellement retires pour
+    -- pouvoir tout refund en cas d'echec (inventaire plein, take mid-loop...).
+    local taken = {}
     for _, input in ipairs(recipe.inputs) do
         if not frzCore:takeItem(src, input.item, input.count) then
-            -- Edge case : entre la verif et le take, un autre script a pris l'item.
+            -- Edge case : entre la verif et le take, un autre script a pris
+            -- l'item. Refund ce qu'on avait deja retire.
+            for _, t in ipairs(taken) do
+                frzCore:giveItem(src, t.item, t.count)
+            end
             TriggerClientEvent('frz-craft:result', src, false, 'Echec : ressources non consommees.')
             return
         end
+        taken[#taken + 1] = input
     end
 
     -- Donne l'output.
     if not frzCore:giveItem(src, recipe.output.item, recipe.output.count) then
-        -- Si l'inventaire est plein, on refund les inputs pour ne pas perdre les ressources.
-        for _, input in ipairs(recipe.inputs) do
-            frzCore:giveItem(src, input.item, input.count)
+        -- Inventaire plein : refund tous les inputs deja retires.
+        for _, t in ipairs(taken) do
+            frzCore:giveItem(src, t.item, t.count)
         end
         TriggerClientEvent('frz-craft:result', src, false, 'Inventaire plein.')
         return

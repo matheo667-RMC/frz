@@ -9,9 +9,15 @@ local frzCore = exports['frz-core']
 
 local searched = {} -- { [pedHandle] = true }
 
+-- Meme pattern que world_containers.lua : scan lent puis passage en per-frame
+-- des qu'un cadavre est a portee (sinon le prompt flicke et la touche E est
+-- ratee a 97%).
 CreateThread(function()
+    local sleep = 500
     while true do
-        Wait(500)
+        Wait(sleep)
+        sleep = 500
+
         local player = PlayerPedId()
         if DoesEntityExist(player) and not IsPedDeadOrDying(player, true) then
             local pcoords = GetEntityCoords(player)
@@ -20,6 +26,7 @@ CreateThread(function()
                 if DoesEntityExist(walker) and IsPedDeadOrDying(walker, true) and not searched[walker] then
                     local d = #(GetEntityCoords(walker) - pcoords)
                     if d <= 1.8 then
+                        sleep = 0
                         local c = GetEntityCoords(walker)
                         frzCore:drawText3D(c.x, c.y, c.z + 0.3, '[E] Fouiller le corps')
                         if IsControlJustReleased(0, 38) then

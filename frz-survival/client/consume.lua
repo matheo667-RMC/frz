@@ -42,19 +42,20 @@ TriggerEvent('chat:addSuggestion', '/use',   'Utiliser un objet (bandage, medkit
 TriggerEvent('chat:addSuggestion', '/eat',   'Manger un item (ex: canned_food)', { { name = 'item', help = 'ex: canned_food' } })
 TriggerEvent('chat:addSuggestion', '/drink', 'Boire un item (ex: water_bottle)', { { name = 'item', help = 'ex: water_bottle' } })
 
--- Le serveur confirme la consommation : on applique les effets localement.
+-- Le serveur confirme la consommation : on applique les effets cosmetiques.
+-- Les stats non-HP (hunger/thirst/fatigue/infection) sont deja mises a jour
+-- cote serveur + syncees au client via frz-core:syncStats, donc on les
+-- re-applique PAS ici (sinon double effet). Les HP eux ne sont pas geres
+-- cote serveur (c'est une native GTA), donc on les applique localement.
 RegisterNetEvent('frz-survival:onConsumed', function(itemId)
     local effect = FrzSurvival.Config.ConsumeEffects[itemId]
     if not effect then return end
 
-    local stats = frzCore:getStats()
     for statName, delta in pairs(effect) do
         if statName == 'health' then
             local ped = PlayerPedId()
             local hp  = GetEntityHealth(ped) + delta
             SetEntityHealth(ped, math.min(GetEntityMaxHealth(ped), math.max(0, hp)))
-        else
-            frzCore:setStatLocal(statName, (stats[statName] or 0) + delta)
         end
     end
     -- Animation de consommation (simple : burger natif).
