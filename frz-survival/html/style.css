@@ -1,0 +1,97 @@
+:root {
+    --bar-bg: rgba(15, 15, 15, 0.75);
+    --bar-border: rgba(255, 255, 255, 0.1);
+    --hunger: #e67e22;
+    --thirst: #3498db;
+    --fatigue: #9b59b6;
+    --infection: #c0392b;
+    --infection-glow: rgba(192, 57, 43, 0.9);
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    color: #fff;
+    pointer-events: none;
+    user-select: none;
+}
+
+.hud {
+    position: absolute;
+    left: 2%;
+    top: 70%;
+    min-width: 220px;
+    padding: 10px 14px;
+    background: var(--bar-bg);
+    border: 1px solid var(--bar-border);
+    border-radius: 6px;
+    transition: opacity 0.25s ease-in-out;
+    opacity: 0.85;
+}
+
+.hud.hidden {
+    opacity: 0;
+}
+
+.bar {
+    display: grid;
+    grid-template-columns: 70px 1fr 40px;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bar-label {
+    color: #ddd;
+    font-weight: 600;
+}
+
+.bar-track {
+    position: relative;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    width: 100%;
+    background: #fff;
+    border-radius: 4px;
+    transition: width 0.35s ease-out, background-color 0.35s ease-out;
+}
+
+.bar[data-stat="hunger"]  .bar-fill { background: var(--hunger); }
+.bar[data-stat="thirst"]  .bar-fill { background: var(--thirst); }
+.bar[data-stat="fatigue"] .bar-fill { background: var(--fatigue); }
+.bar[data-stat="infection"] .bar-fill { background: var(--infection); }
+
+.bar.low .bar-fill { animation: pulse 1.2s ease-in-out infinite; }
+
+.bar-value {
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    color: #bbb;
+    text-align: right;
+}
+
+/* La barre d'infection n'apparait qu'une fois > 0 */
+.infection-bar { display: none; }
+.infection-bar.active {
+    display: grid;
+    box-shadow: 0 0 6px var(--infection-glow);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.35; }
+}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>FRZ Survival HUD</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="hud" class="hud hidden">
+        <div class="bar" data-stat="hunger">
+            <div class="bar-label">Faim</div>
+            <div class="bar-track"><div class="bar-fill" id="fill-hunger"></div></div>
+            <div class="bar-value" id="val-hunger">100</div>
+        </div>
+        <div class="bar" data-stat="thirst">
+            <div class="bar-label">Soif</div>
+            <div class="bar-track"><div class="bar-fill" id="fill-thirst"></div></div>
+            <div class="bar-value" id="val-thirst">100</div>
+        </div>
+        <div class="bar" data-stat="fatigue">
+            <div class="bar-label">Fatigue</div>
+            <div class="bar-track"><div class="bar-fill" id="fill-fatigue"></div></div>
+            <div class="bar-value" id="val-fatigue">100</div>
+        </div>
+        <div class="bar infection-bar" data-stat="infection">
+            <div class="bar-label">Infection</div>
+            <div class="bar-track"><div class="bar-fill" id="fill-infection"></div></div>
+            <div class="bar-value" id="val-infection">0</div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
