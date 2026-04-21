@@ -89,5 +89,7 @@ RegisterNetEvent('frz-survival:onBite', function()
     local ped = PlayerPedId()
     SetEntityHealth(ped, math.max(0, GetEntityHealth(ped) - FrzSurvival.Config.BiteDamage))
 
-    exports['frz-core']:notify('Tu as ete mordu ! Infection : ' .. math.floor(newInf) .. ' %')
+    -- newInf n'est pas clampe avant d'etre stocke (setStatLocal le fait
+    -- cote cache, mais on affiche quand meme une valeur >=100 parfois).
+    exports['frz-core']:notify('Tu as ete mordu ! Infection : ' .. math.floor(math.min(100, newInf)) .. ' %')
 end)

@@ -94,7 +94,14 @@ local function spawnWalker()
         return
     end
 
-    local walker = CreatePed(4, modelHash, spawnPt.x, spawnPt.y, spawnPt.z, math.random(0, 360) + 0.0, true, false)
+    -- isNetwork=false : chaque client gere ses propres rodeurs localement.
+    -- Si on le mettait a true (networked), plusieurs joueurs proches se
+    -- multiplieraient leurs caps (ex: 3 joueurs -> 3*MaxPerPlayer rodeurs
+    -- visibles sur la zone au lieu de MaxPerPlayer), et le cleanup d'un
+    -- client ferait disparaitre les rodeurs chez les autres. Avec
+    -- isNetwork=false, chacun voit sa propre simulation (coherent avec
+    -- un sandbox survie et beaucoup plus leger en perf).
+    local walker = CreatePed(4, modelHash, spawnPt.x, spawnPt.y, spawnPt.z, math.random(0, 360) + 0.0, false, false)
     SetModelAsNoLongerNeeded(modelHash)
     if not walker or walker == 0 then return end
 
