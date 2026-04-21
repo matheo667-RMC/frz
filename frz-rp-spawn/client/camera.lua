@@ -1,4 +1,4 @@
--- FRZ RP - gestion de la camera cinematique
+-- Dead Zone RP - gestion de la camera cinematique
 FrzSpawn = FrzSpawn or {}
 
 local activeCam = nil

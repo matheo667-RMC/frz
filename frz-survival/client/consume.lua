@@ -1,4 +1,4 @@
--- FRZ RP (frz-survival) - Consommation d'items (manger / boire / soigner).
+-- Dead Zone RP (frz-survival) - Consommation d'items (manger / boire / soigner).
 -- Commandes chat :
 --   /eat <itemId>   : mange l'item (canned_food, energy_bar...)
 --   /drink <itemId> : boit l'item (water_bottle)

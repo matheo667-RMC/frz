@@ -1,4 +1,4 @@
--- FRZ RP (frz-craft) - Validation et execution serveur des crafts.
+-- Dead Zone RP (frz-craft) - Validation et execution serveur des crafts.
 -- Le client envoie l'id de recette apres l'animation. Le serveur re-verifie
 -- les inputs (anti-triche) puis consomme et donne l'output.
 

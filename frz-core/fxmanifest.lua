@@ -2,8 +2,8 @@ fx_version 'cerulean'
 game 'gta5'
 
 name 'frz-core'
-author 'FRZ'
-description 'FRZ RP - Noyau partage (etat joueur, inventaire, evenements) pour les ressources de survie'
+author 'Dead Zone RP'
+description 'Dead Zone RP - Noyau partage (etat joueur, inventaire, evenements) pour les ressources de survie'
 version '1.0.0'
 
 lua54 'yes'

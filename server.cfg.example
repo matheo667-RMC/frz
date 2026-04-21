@@ -1,5 +1,5 @@
 # =========================================================================
-# FRZ RP - Exemple de section server.cfg pour charger les ressources de survie.
+# Dead Zone RP - Exemple de section server.cfg pour charger les ressources de survie.
 # Copie les lignes 'ensure' dans ton server.cfg existant (en plus de tes
 # autres ressources).
 #
@@ -25,5 +25,7 @@ ensure frz-craft
 # Zones refuges (LSIA, Paleto, Altruist camp) - pas de rodeurs, regen lente.
 ensure frz-safezones
 
-# Intro spawn LSIA + cinematique avion + annonce vocale FR.
-ensure frz-rp-spawn
+# NOTE : frz-rp-spawn est desactive par defaut (on laisse spawnmanager natif
+# gerer les spawns aleatoires, plus coherent avec un mode survival).
+# Decommente la ligne ci-dessous si tu veux recuperer la cinematique LSIA.
+# ensure frz-rp-spawn

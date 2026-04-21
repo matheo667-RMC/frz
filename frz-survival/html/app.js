@@ -1,4 +1,4 @@
-// FRZ Survival HUD - NUI side.
+// Dead Zone RP - Survival HUD - NUI side.
 // Recoit des messages { type: 'init' | 'update' | 'visibility' } depuis Lua.
 
 (function () {

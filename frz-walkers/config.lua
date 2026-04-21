@@ -1,4 +1,4 @@
--- FRZ RP (frz-walkers) - Config du directeur de spawn rodeurs.
+-- Dead Zone RP (frz-walkers) - Config du directeur de spawn rodeurs.
 -- Tous les spawns sont COTE CLIENT : chaque client gere ses propres rodeurs
 -- autour de lui (scalable, pas de sync serveur massif). Les morsures sont
 -- validees par le serveur pour eviter les triches.

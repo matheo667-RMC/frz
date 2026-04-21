@@ -1,4 +1,4 @@
--- FRZ RP (frz-survival) - Parametres des ticks de survie et des effets.
+-- Dead Zone RP (frz-survival) - Parametres des ticks de survie et des effets.
 -- Modifie ces valeurs pour rendre la survie plus ou moins punitive.
 
 FrzSurvival = FrzSurvival or {}

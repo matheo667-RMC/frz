@@ -1,4 +1,4 @@
--- FRZ RP (frz-survival) - Boucle de ticks cote client.
+-- Dead Zone RP (frz-survival) - Boucle de ticks cote client.
 -- On calcule les baisses de stats localement pour eviter d'alourdir le serveur,
 -- et on pushe l'etat au serveur via frz-core toutes les FrzCore.Config.StateSyncInterval ms.
 

@@ -1,4 +1,4 @@
--- FRZ RP (frz-walkers) - Detection des morsures.
+-- Dead Zone RP (frz-walkers) - Detection des morsures.
 -- Quand un rodeur est a portee courte du joueur et fait une animation de
 -- melee, on declenche l'infection cote serveur (anti-cheat : le serveur
 -- verifie qu'il y a bien un rodeur a portee via frz-walkers:validateBite).

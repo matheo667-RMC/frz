@@ -1,4 +1,4 @@
--- FRZ RP (frz-core) - Commandes admin pour debug / GM.
+-- Dead Zone RP (frz-core) - Commandes admin pour debug / GM.
 -- Toutes accessibles uniquement depuis la console (source 0) ou depuis un
 -- identifiant present dans FrzCore.Config.Admins.
 

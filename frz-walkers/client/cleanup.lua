@@ -1,4 +1,4 @@
--- FRZ RP (frz-walkers) - Cleanup des rodeurs hors de portee ou morts.
+-- Dead Zone RP (frz-walkers) - Cleanup des rodeurs hors de portee ou morts.
 -- Libere la memoire cote client et empeche une accumulation infinie.
 
 FrzWalkers = FrzWalkers or {}

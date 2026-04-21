@@ -2,15 +2,19 @@ fx_version 'cerulean'
 game 'gta5'
 
 name 'frz-survival'
-author 'FRZ'
-description 'FRZ RP - Mecaniques de survie (faim, soif, fatigue, infection) + HUD'
+author 'Dead Zone RP'
+description 'Dead Zone RP - Mecaniques de survie (faim, soif, fatigue, infection) + HUD'
 version '1.0.0'
 
 lua54 'yes'
 
 dependency 'frz-core'
 
-shared_script 'config.lua'
+-- FrzCore.Config est partage depuis frz-core (VM Lua isolee sinon).
+shared_scripts {
+    '@frz-core/config.lua',
+    'config.lua',
+}
 
 client_scripts {
     'client/ticks.lua',

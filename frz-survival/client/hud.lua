@@ -1,4 +1,4 @@
--- FRZ RP (frz-survival) - HUD NUI affichant les stats de survie.
+-- Dead Zone RP (frz-survival) - HUD NUI affichant les stats de survie.
 -- On envoie un message postMessage a chaque changement de stat (throttle 500 ms).
 
 FrzSurvival = FrzSurvival or {}

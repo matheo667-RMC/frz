@@ -1,4 +1,4 @@
--- FRZ RP (frz-core) - Cache local de l'etat joueur + exports client.
+-- Dead Zone RP (frz-core) - Cache local de l'etat joueur + exports client.
 -- Les autres ressources (survival, walkers, loot...) lisent l'etat via ces
 -- exports plutot que de dupliquer la logique de synchro.
 
@@ -6,7 +6,6 @@ FrzCore = FrzCore or {}
 FrzCore.Client = FrzCore.Client or {}
 
 local stats = {}
-local inventory = {}
 local ready = false
 
 for k, v in pairs(FrzCore.Config.DefaultStats) do stats[k] = v end
@@ -19,12 +18,8 @@ RegisterNetEvent('frz-core:syncStats', function(newStats)
     ready = true
 end)
 
-RegisterNetEvent('frz-core:syncInventory', function(newInv)
-    if type(newInv) ~= 'table' then return end
-    -- Remplacement complet (le serveur est source de verite).
-    inventory = {}
-    for k, v in pairs(newInv) do inventory[k] = v end
-end)
+-- Note : la sync de l'inventaire est geree par client/inventory.lua dans la
+-- meme VM Lua. Pas besoin de dupliquer le handler ici.
 
 function FrzCore.Client.getStat(name)
     return stats[name]

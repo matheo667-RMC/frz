@@ -1,4 +1,4 @@
--- FRZ RP (frz-core) - Cache local de l'inventaire + commande /inv.
+-- Dead Zone RP (frz-core) - Cache local de l'inventaire + commande /inv.
 -- Affiche l'inventaire dans le chat (standalone, pas de menu NUI ici pour
 -- rester minimal : un menu NUI complet pourra etre ajoute plus tard).
 
@@ -62,7 +62,7 @@ RegisterCommand('inv', function()
     end
 end, false)
 
-TriggerEvent('chat:addSuggestion', '/inv', 'Afficher ton inventaire FRZ RP')
+TriggerEvent('chat:addSuggestion', '/inv', 'Afficher ton inventaire Dead Zone RP')
 
 exports('getInventory', FrzCore.Client.getInventory)
 exports('hasItem', FrzCore.Client.hasItem)

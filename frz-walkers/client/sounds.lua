@@ -1,4 +1,4 @@
--- FRZ RP (frz-walkers) - Grognements aleatoires des rodeurs (ambient).
+-- Dead Zone RP (frz-walkers) - Grognements aleatoires des rodeurs (ambient).
 -- On utilise PlaySoundFromEntity avec un sound set natif GTA V. Si tu
 -- installes un pack audio custom (voir MODS.md), override le sound set dans
 -- config.lua.

@@ -2,8 +2,8 @@ fx_version 'cerulean'
 game 'gta5'
 
 name 'frz-walkers'
-author 'FRZ'
-description 'FRZ RP - Rodeurs (zombies) : spawn dynamique, IA hostile, morsures, sons'
+author 'Dead Zone RP'
+description 'Dead Zone RP - Rodeurs (zombies) : spawn dynamique, IA hostile, morsures, sons'
 version '1.0.0'
 
 lua54 'yes'

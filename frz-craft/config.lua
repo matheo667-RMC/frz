@@ -1,4 +1,4 @@
--- FRZ RP (frz-craft) - Recettes de craft.
+-- Dead Zone RP (frz-craft) - Recettes de craft.
 -- Chaque recette a un id unique, des inputs (items a consommer), un output
 -- (item produit + qty), et un temps de craft.
 

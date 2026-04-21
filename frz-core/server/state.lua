@@ -1,4 +1,4 @@
--- FRZ RP (frz-core) - Gestion serveur des stats de survie.
+-- Dead Zone RP (frz-core) - Gestion serveur des stats de survie.
 -- Ces stats sont lues/ecrites par frz-survival (ticks faim/soif), frz-walkers
 -- (morsures -> infection), frz-loot (consommation d'items), etc.
 

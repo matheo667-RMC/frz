@@ -1,4 +1,4 @@
--- FRZ RP (frz-safezones) - Regen lente dans une safe zone (HP + faim + soif).
+-- Dead Zone RP (frz-safezones) - Regen lente dans une safe zone (HP + faim + soif).
 -- Utilise les exports frz-core pour rester standalone.
 
 FrzSafeZones = FrzSafeZones or {}

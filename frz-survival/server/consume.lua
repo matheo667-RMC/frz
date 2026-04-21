@@ -1,4 +1,4 @@
--- FRZ RP (frz-survival) - Serveur : validation et retrait d'item lors d'une
+-- Dead Zone RP (frz-survival) - Serveur : validation et retrait d'item lors d'une
 -- consommation. Le client envoie 'frz-survival:consume', on retire l'item via
 -- frz-core, puis on confirme au client qui applique les effets.
 

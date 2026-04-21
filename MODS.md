@@ -1,4 +1,4 @@
-# Mods GTA V recommandés pour FRZ RP (survie / zombies)
+# Mods GTA V recommandés pour Dead Zone RP (survie / zombies)
 
 Les scripts de ce repo (`frz-walkers`, `frz-survival`, etc.) **fonctionnent tels quels** avec GTA V de base : le modèle `s_m_y_zombie_01` est déjà présent dans le flux Halloween du jeu, et les sons d'ambiance utilisent des natives GTA.
 

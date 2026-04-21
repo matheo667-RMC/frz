@@ -2,15 +2,20 @@ fx_version 'cerulean'
 game 'gta5'
 
 name 'frz-loot'
-author 'FRZ'
-description 'FRZ RP - Loot de ressources (dumpsters, epaves, corps de rodeurs)'
+author 'Dead Zone RP'
+description 'Dead Zone RP - Loot de ressources (dumpsters, epaves, corps de rodeurs)'
 version '1.0.0'
 
 lua54 'yes'
 
 dependency 'frz-core'
+dependency 'frz-walkers'
 
-shared_script 'config.lua'
+-- FrzCore.Config est partage depuis frz-core (VM Lua isolee sinon).
+shared_scripts {
+    '@frz-core/config.lua',
+    'config.lua',
+}
 
 client_scripts {
     'client/world_containers.lua',

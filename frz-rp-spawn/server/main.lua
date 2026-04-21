@@ -1,4 +1,4 @@
--- FRZ RP - cote serveur (detection du premier join via fichier JSON persistant)
+-- Dead Zone RP - cote serveur (detection du premier join via fichier JSON persistant)
 -- On n'utilise pas SetResourceKvpString cote serveur car certaines builds FXServer
 -- ne l'exposent pas. On passe par SaveResourceFile / LoadResourceFile qui est disponible
 -- partout et qui s'ecrit dans le dossier de la ressource.

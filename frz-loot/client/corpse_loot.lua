@@ -1,4 +1,4 @@
--- FRZ RP (frz-loot) - Loot sur les cadavres de rodeurs.
+-- Dead Zone RP (frz-loot) - Loot sur les cadavres de rodeurs.
 -- Les rodeurs morts sont gardes 30s par frz-walkers/cleanup.lua. Pendant ce
 -- delai, le joueur peut les fouiller.
 
@@ -21,7 +21,9 @@ CreateThread(function()
         local player = PlayerPedId()
         if DoesEntityExist(player) and not IsPedDeadOrDying(player, true) then
             local pcoords = GetEntityCoords(player)
-            local walkers = exports['frz-walkers'] and FrzWalkers and FrzWalkers.Client and FrzWalkers.Client.active or {}
+            -- frz-walkers expose les rodeurs actifs via un export (VM Lua
+            -- isolee, on ne peut pas lire FrzWalkers.Client.active directement).
+            local walkers = exports['frz-walkers']:getActiveWalkers() or {}
             for walker, _ in pairs(walkers) do
                 if DoesEntityExist(walker) and IsPedDeadOrDying(walker, true) and not searched[walker] then
                     local d = #(GetEntityCoords(walker) - pcoords)

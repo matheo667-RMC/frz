@@ -1,4 +1,4 @@
--- FRZ RP (frz-safezones) - Liste des zones refuges.
+-- Dead Zone RP (frz-safezones) - Liste des zones refuges.
 -- Chaque zone a un centre, un rayon (m), un libelle FR et des options.
 
 FrzSafeZones = FrzSafeZones or {}

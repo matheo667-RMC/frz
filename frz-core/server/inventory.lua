@@ -1,4 +1,4 @@
--- FRZ RP (frz-core) - Inventaire serveur (standalone, sans ESX/QBCore).
+-- Dead Zone RP (frz-core) - Inventaire serveur (standalone, sans ESX/QBCore).
 -- Format de l'inventaire : table { [itemId:string] = count:int }.
 -- La capacite maximum est exprimee en kg via FrzCore.Config.ItemWeights.
 

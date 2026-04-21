@@ -1,4 +1,4 @@
--- FRZ RP (frz-walkers) - Directeur de spawn local.
+-- Dead Zone RP (frz-walkers) - Directeur de spawn local.
 -- Genere/supprime les rodeurs autour du joueur en respectant les caps et les
 -- safe zones. Chaque client gere ses propres rodeurs (pas de sync serveur).
 
@@ -148,4 +148,29 @@ CreateThread(function()
             end
         end
     end
+end)
+
+-- Exports : les autres ressources (frz-loot, frz-safezones) vivent dans des
+-- VMs Lua isolees, donc FrzWalkers.Client / FrzWalkers.Config n'est pas
+-- visible chez elles. On passe par des exports pour les partager.
+
+exports('getActiveWalkers', function()
+    -- On renvoie une copie superficielle : la table est reevaluee par copy-by-value
+    -- cote appelant, donc pas de risque de modif externe de FrzWalkers.Client.active.
+    local out = {}
+    for ped, info in pairs(FrzWalkers.Client.active) do
+        if DoesEntityExist(ped) then
+            out[ped] = info
+        end
+    end
+    return out
+end)
+
+exports('addNoSpawnZone', function(center, radius)
+    if not center or not radius then return end
+    FrzWalkers.Config.NoSpawnZones = FrzWalkers.Config.NoSpawnZones or {}
+    table.insert(FrzWalkers.Config.NoSpawnZones, {
+        center = vector3(center.x or center[1], center.y or center[2], center.z or center[3]),
+        radius = radius,
+    })
 end)

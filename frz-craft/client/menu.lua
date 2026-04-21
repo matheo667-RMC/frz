@@ -1,4 +1,4 @@
--- FRZ RP (frz-craft) - Menu de craft via chat (pas de NUI pour rester simple).
+-- Dead Zone RP (frz-craft) - Menu de craft via chat (pas de NUI pour rester simple).
 -- Commandes :
 --   /craft         : liste les recettes disponibles avec l'etat (faisable ou pas).
 --   /craft <id>    : lance le craft (si possible) avec progress bar dans le chat.
@@ -91,7 +91,7 @@ RegisterCommand('craft', function(_, args)
     crafting = false
 end, false)
 
-TriggerEvent('chat:addSuggestion', '/craft', 'Craft FRZ RP - sans argument = liste, avec = lance le craft',
+TriggerEvent('chat:addSuggestion', '/craft', 'Craft Dead Zone RP - sans argument = liste, avec = lance le craft',
     { { name = 'recipe_id', help = 'ex: bandage, medkit, melee_bat, barricade' } })
 
 RegisterNetEvent('frz-craft:result', function(ok, message)

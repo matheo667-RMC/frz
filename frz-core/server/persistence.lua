@@ -1,4 +1,4 @@
--- FRZ RP (frz-core) - Persistance JSON des etats joueurs.
+-- Dead Zone RP (frz-core) - Persistance JSON des etats joueurs.
 -- On reutilise le pattern etabli dans frz-rp-spawn : SaveResourceFile /
 -- LoadResourceFile, qui fonctionne sur toutes les builds FXServer sans
 -- dependre de SetResourceKvp cote serveur.

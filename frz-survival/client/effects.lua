@@ -1,4 +1,4 @@
--- FRZ RP (frz-survival) - Effets de gameplay lies aux stats basses.
+-- Dead Zone RP (frz-survival) - Effets de gameplay lies aux stats basses.
 -- Quand faim/soif/fatigue tombent sous un seuil : tremblements, vision floue,
 -- perte de HP. Quand infection = 100 : mort (transformation en rodeur).
 

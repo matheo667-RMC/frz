@@ -1,4 +1,4 @@
--- FRZ RP (frz-loot) - Handlers des events de fouille cote serveur.
+-- Dead Zone RP (frz-loot) - Handlers des events de fouille cote serveur.
 
 local frzCore = exports['frz-core']
 local frzLoot = exports['frz-loot']

@@ -1,4 +1,4 @@
--- FRZ RP (frz-safezones) - Indicateurs visuels (blips map + notifs) quand
+-- Dead Zone RP (frz-safezones) - Indicateurs visuels (blips map + notifs) quand
 -- on entre / sort d'une zone refuge.
 
 FrzSafeZones = FrzSafeZones or {}

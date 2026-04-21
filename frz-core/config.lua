@@ -1,4 +1,4 @@
--- FRZ RP - Configuration partagee du noyau (frz-core).
+-- Dead Zone RP - Configuration partagee du noyau (frz-core).
 -- Ce fichier est charge en shared_script : accessible cote client ET cote serveur.
 
 FrzCore = FrzCore or {}

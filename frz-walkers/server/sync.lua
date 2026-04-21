@@ -1,4 +1,4 @@
--- FRZ RP (frz-walkers) - Serveur : relaie les morsures aux ressources de
+-- Dead Zone RP (frz-walkers) - Serveur : relaie les morsures aux ressources de
 -- survie (frz-survival) et expose une kill-count par joueur (utile pour des
 -- scoreboards futurs).
 

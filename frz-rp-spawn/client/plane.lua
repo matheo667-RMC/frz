@@ -1,4 +1,4 @@
--- FRZ RP - gestion de l'avion cinematique
+-- Dead Zone RP - gestion de l'avion cinematique
 FrzSpawn = FrzSpawn or {}
 
 local function loadModel(modelName, timeoutMs)

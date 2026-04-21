@@ -1,4 +1,4 @@
--- FRZ RP (frz-loot) - Config du systeme de loot.
+-- Dead Zone RP (frz-loot) - Config du systeme de loot.
 
 FrzLoot = FrzLoot or {}
 FrzLoot.Config = FrzLoot.Config or {}

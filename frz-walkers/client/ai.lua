@@ -1,4 +1,4 @@
--- FRZ RP (frz-walkers) - IA secondaire : re-aggro les rodeurs qui ont perdu
+-- Dead Zone RP (frz-walkers) - IA secondaire : re-aggro les rodeurs qui ont perdu
 -- leur cible, et met a jour leur comportement (melee agressif, pas de fuite).
 
 FrzWalkers = FrzWalkers or {}

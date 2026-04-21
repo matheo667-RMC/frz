@@ -1,4 +1,4 @@
--- FRZ RP - orchestrateur client (cinematique d'arrivee a LSIA)
+-- Dead Zone RP - orchestrateur client (cinematique d'arrivee a LSIA)
 FrzSpawn = FrzSpawn or {}
 
 local introPlayed   = false
@@ -67,7 +67,7 @@ function FrzSpawn.playIntro()
     -- 3. Fade in sur la scene cinematique.
     fadeIn(1000)
 
-    -- 4. Title card "FRZ RP - Los Santos International Airport".
+    -- 4. Title card "Dead Zone RP - Los Santos International Airport".
     FrzSpawn.showTitleCard(Config.TitleCardMain, Config.TitleCardSub)
 
     -- 5. Programme le son d'atterrissage pour le moment ou l'avion touche la piste.

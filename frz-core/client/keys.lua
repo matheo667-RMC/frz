@@ -1,4 +1,4 @@
--- FRZ RP (frz-core) - Helpers clavier / controles partages.
+-- Dead Zone RP (frz-core) - Helpers clavier / controles partages.
 -- Fournit des constantes et un helper pour poser des commandes liees a une
 -- touche, afin que les autres ressources n'aient pas a re-declarer les memes
 -- hashes Citizen controls.

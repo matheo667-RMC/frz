@@ -1,4 +1,4 @@
--- FRZ RP (frz-walkers) - Configuration des relationships groups.
+-- Dead Zone RP (frz-walkers) - Configuration des relationships groups.
 -- On cree un groupe 'FRZ_WALKERS' hostile a tout (joueurs, NPCs civils) pour
 -- que les rodeurs attaquent sans distinction.
 

@@ -1,4 +1,4 @@
--- FRZ RP (frz-craft) - Pose de barricades.
+-- Dead Zone RP (frz-craft) - Pose de barricades.
 -- Quand le joueur a un item 'barricade' et utilise /placebarricade, on spawn
 -- un prop de planche de bois devant lui et on consomme l'item.
 

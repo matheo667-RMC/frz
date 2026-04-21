@@ -1,4 +1,4 @@
--- FRZ RP (frz-loot) - Fonctions utilitaires pour tirer du loot.
+-- Dead Zone RP (frz-loot) - Fonctions utilitaires pour tirer du loot.
 -- Isolees du handler d'event pour etre testables plus facilement et pour
 -- pouvoir exposer un tirage comme export (utilise par d'autres ressources qui
 -- voudraient generer un loot, ex: mission quetes futures).

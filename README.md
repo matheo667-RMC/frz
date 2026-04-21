@@ -1,6 +1,6 @@
-# FRZ
+# Dead Zone RP
 
-Ressources FiveM pour le serveur **FRZ RP** — ambiance **survie post-apo / The Walking Dead** (rôdeurs, ressources, craft, zones refuges).
+Ressources FiveM pour le serveur **Dead Zone RP** — ambiance **survie post-apo / The Walking Dead** (rôdeurs, ressources, craft, zones refuges).
 
 Ce dépôt est un **monorepo** : chaque sous-dossier est une ressource FiveM autonome que tu peux activer / désactiver individuellement via `server.cfg`.
 
@@ -8,13 +8,13 @@ Ce dépôt est un **monorepo** : chaque sous-dossier est une ressource FiveM aut
 
 | Nom | Description |
 | --- | --- |
-| `frz-rp-spawn` | Spawn à l'aéroport de Los Santos au premier join avec cinématique d'atterrissage d'avion et annonce vocale française. |
 | `frz-core` | Noyau partagé : état joueur (faim / soif / fatigue / infection), inventaire en kg, persistance JSON, commandes admin. |
 | `frz-survival` | Boucle de survie (ticks de faim / soif / fatigue), effets visuels (blur, cam shake, dégâts), infection, HUD NUI en français, consommables (`/eat`, `/drink`, `/use`). |
 | `frz-walkers` | Rôdeurs (zombies) : spawn dynamique autour des joueurs, IA hostile en mêlée, morsures → infection, grognements, cleanup auto. |
 | `frz-loot` | Loot des bennes / poubelles / toolboxes / cartons du monde + fouille des corps de rôdeurs. Tables de loot configurables. |
 | `frz-craft` | Craft de bandages, kits de soin, batte cloutée, barricades, munitions. Menu chat `/craft`. |
 | `frz-safezones` | Zones refuges (LSIA, Paleto, Altruist camp) : pas de spawns de rôdeurs, regen lente HP + faim + soif, blips sur la map. |
+| `frz-rp-spawn` | **Optionnel** — spawn forcé à LSIA au premier join avec cinématique d'atterrissage d'avion. Désactivé par défaut pour laisser des spawns aléatoires plus cohérents avec le mode survie. |
 
 ## Installation
 
@@ -25,14 +25,14 @@ Ce dépôt est un **monorepo** : chaque sous-dossier est une ressource FiveM aut
    ```
 2. Ajoute les `ensure` à ton `server.cfg` (voir [`server.cfg.example`](server.cfg.example)) :
    ```
-   # FRZ RP - ordre important : frz-core avant les autres
+   # Dead Zone RP - ordre important : frz-core avant les autres
    ensure frz-core
    ensure frz-survival
    ensure frz-walkers
    ensure frz-loot
    ensure frz-craft
    ensure frz-safezones
-   ensure frz-rp-spawn
+   # ensure frz-rp-spawn  # optionnel : decommente pour activer le spawn LSIA cinematique
    ```
 3. (Optionnel mais conseillé) Installe les mods GTA V recommandés côté client pour le rendu : voir [`MODS.md`](MODS.md).
 4. Redémarre ton serveur : `restart [frz]` ou redémarrage complet.
@@ -58,7 +58,7 @@ Les props lootables (bennes, poubelles…) sont détectés quand tu passes à c�
 | `frzwipe <playerId>` | Efface les données d'un joueur. |
 | `frzwipeall` | Efface toutes les données joueurs. |
 | `frzwalkerkills` | Top 10 des tueurs de rôdeurs. |
-| `frzresetspawn <playerId>` / `frzresetspawnall` | Remet à zéro l'intro du spawn LSIA. |
+| `frzresetspawn <playerId>` / `frzresetspawnall` | Remet à zéro l'intro du spawn LSIA (uniquement si `frz-rp-spawn` est activé). |
 
 ## Configuration
 
@@ -77,4 +77,4 @@ Aucune. Les ressources sont **standalone** (pas d'ESX, pas de QBCore). Elles uti
 
 ## Licence
 
-© FRZ — Tous droits réservés. Ces ressources sont réservées à un usage interne FRZ RP.
+© Dead Zone RP — Tous droits réservés. Ces ressources sont réservées à un usage interne Dead Zone RP.

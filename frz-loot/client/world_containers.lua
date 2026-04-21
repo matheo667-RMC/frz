@@ -1,4 +1,4 @@
--- FRZ RP (frz-loot) - Detection des props "fouillables" dans le monde
+-- Dead Zone RP (frz-loot) - Detection des props "fouillables" dans le monde
 -- (bennes, poubelles, caisses). On scanne les entites proches du joueur et
 -- quand il appuie sur E -> event serveur -> tirage + inventaire.
 

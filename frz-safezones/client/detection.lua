@@ -1,4 +1,4 @@
--- FRZ RP (frz-safezones) - Detection de zone : on calcule en continu la
+-- Dead Zone RP (frz-safezones) - Detection de zone : on calcule en continu la
 -- safezone courante (celle qui contient le joueur, la plus petite en cas
 -- d overlap) et on expose getCurrentZone() aux autres modules.
 

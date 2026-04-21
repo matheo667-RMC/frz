@@ -1,4 +1,4 @@
--- FRZ RP (frz-core) - Notifications joueur (messages a l'ecran).
+-- Dead Zone RP (frz-core) - Notifications joueur (messages a l'ecran).
 -- Utilise BeginTextCommandThefeedPost, qui est dispo en standalone FiveM sans
 -- dependance externe (scaleform natif GTA V).
 
