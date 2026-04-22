@@ -9,6 +9,7 @@ version '1.0.0'
 lua54 'yes'
 
 dependency 'frz-core'
+dependency 'frz-survival'
 
 shared_script 'config.lua'
 

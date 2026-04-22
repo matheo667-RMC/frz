@@ -25,6 +25,7 @@ client_scripts {
 
 server_scripts {
     'server/consume.lua',
+    'server/bite.lua',
 }
 
 ui_page 'html/index.html'

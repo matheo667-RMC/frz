@@ -1,6 +1,8 @@
 -- Dead Zone RP (frz-craft) - Pose de barricades.
--- Quand le joueur a un item 'barricade' et utilise /placebarricade, on spawn
--- un prop de planche de bois devant lui et on consomme l'item.
+-- Le joueur fait /placebarricade : le client demande au serveur de consommer
+-- l'item (serveur-authoritatif). Ce n'est qu'apres confirmation serveur qu'on
+-- spawn le prop reseau. Evite le "free barricade" si takeItem echoue apres
+-- que le client a deja pose le prop (race condition entre hasItem et takeItem).
 
 FrzCraft = FrzCraft or {}
 FrzCraft.Client = FrzCraft.Client or {}
@@ -12,12 +14,9 @@ local frzCore = exports['frz-core']
 local BARRICADE_MODEL = 'prop_woodpile_01b'
 
 local placedBarricades = {}
+local requesting = false -- evite double-clic / spam command pendant un request.
 
-local function placeBarricade()
-    if not frzCore:hasItem('barricade', 1) then
-        frzCore:notify('Tu n as pas de barricade. Craft une : /craft barricade')
-        return
-    end
+local function spawnBarricadeProp()
     local ped = PlayerPedId()
     local coords = GetEntityCoords(ped)
     local heading = GetEntityHeading(ped)
@@ -32,9 +31,12 @@ local function placeBarricade()
         if GetGameTimer() - t0 > 3000 then
             SetModelAsNoLongerNeeded(hash)
             frzCore:notify('Echec du placement (prop non charge).')
+            -- L'item a deja ete consomme cote serveur : on refund.
+            TriggerServerEvent('frz-craft:barricadeSpawnFailed')
             return
         end
     end
+
     local obj = CreateObject(hash, pos.x, pos.y, pos.z - 0.5, true, true, false)
     SetEntityHeading(obj, heading)
     PlaceObjectOnGroundProperly(obj)
@@ -42,9 +44,29 @@ local function placeBarricade()
     SetModelAsNoLongerNeeded(hash)
 
     placedBarricades[#placedBarricades + 1] = obj
-    TriggerServerEvent('frz-craft:consumeBarricade')
     frzCore:notify('Barricade posee.')
 end
+
+local function placeBarricade()
+    if requesting then return end
+    -- Check local rapide (purement UX : le serveur re-verifie).
+    if not frzCore:hasItem('barricade', 1) then
+        frzCore:notify('Tu n as pas de barricade. Craft une : /craft barricade')
+        return
+    end
+    requesting = true
+    TriggerServerEvent('frz-craft:requestBarricade')
+end
+
+-- Le serveur confirme si on peut poser. On ne spawn le prop qu'ici.
+RegisterNetEvent('frz-craft:barricadeResult', function(ok, msg)
+    requesting = false
+    if ok then
+        spawnBarricadeProp()
+    else
+        frzCore:notify(msg or 'Impossible de poser la barricade.')
+    end
+end)
 
 RegisterCommand('placebarricade', function() placeBarricade() end, false)
 TriggerEvent('chat:addSuggestion', '/placebarricade', 'Pose une barricade devant toi')

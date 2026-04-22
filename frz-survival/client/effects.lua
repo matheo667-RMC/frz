@@ -80,16 +80,17 @@ AddEventHandler('gameEventTriggered', function(name, args)
     end
 end)
 
--- Hook morsure rodeur -> infection + damage.
-RegisterNetEvent('frz-survival:onBite', function()
-    local stats = frzCore:getStats()
-    local newInf = (stats.infection or 0) + FrzSurvival.Config.InfectionOnBite
-    frzCore:setStatLocal('infection', newInf)
-
+-- Hook morsure rodeur -> damage HP + notif.
+-- L'infection est desormais appliquee cote serveur (frz-survival/server/
+-- bite.lua : applyBite -> frz-core:addStat) qui push aussi le nouveau total
+-- au client via frz-core:syncStats. On lit donc la stat a jour directement.
+RegisterNetEvent('frz-survival:onBite', function(amount)
     local ped = PlayerPedId()
     SetEntityHealth(ped, math.max(0, GetEntityHealth(ped) - FrzSurvival.Config.BiteDamage))
 
-    -- newInf n'est pas clampe avant d'etre stocke (setStatLocal le fait
-    -- cote cache, mais on affiche quand meme une valeur >=100 parfois).
-    exports['frz-core']:notify('Tu as ete mordu ! Infection : ' .. math.floor(math.min(100, newInf)) .. ' %')
+    -- Le syncStats serveur peut arriver apres cet event ; on prend donc
+    -- l'infection courante OU (defaut) l'ancien cache + amount, clampe a 100.
+    local stats = frzCore:getStats() or {}
+    local shown = math.min(100, (stats.infection or 0) + (amount or 0))
+    exports['frz-core']:notify(('Tu as ete mordu ! Infection : %d %%'):format(math.floor(shown)))
 end)

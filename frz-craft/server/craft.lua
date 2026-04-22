@@ -66,7 +66,31 @@ RegisterNetEvent('frz-craft:requestCraft', function(recipeId)
     TriggerClientEvent('frz-craft:result', src, true, string.format('%dx %s', recipe.output.count, outLabel))
 end)
 
-RegisterNetEvent('frz-craft:consumeBarricade', function()
+-- Anti-spam barricades (1 request/sec par joueur, meme rule que les crafts).
+local lastBarricadeAt = {}
+
+-- Flow serveur-authoritatif : le client demande la pose, on valide + consomme
+-- l'item, on repond ok/fail. Le client ne spawn le prop reseau qu'apres ok.
+RegisterNetEvent('frz-craft:requestBarricade', function()
     local src = source
-    frzCore:takeItem(src, 'barricade', 1)
+    local now = GetGameTimer()
+    if (now - (lastBarricadeAt[src] or 0)) < 1000 then return end
+    lastBarricadeAt[src] = now
+
+    if not frzCore:hasItem(src, 'barricade', 1) then
+        TriggerClientEvent('frz-craft:barricadeResult', src, false, 'Aucune barricade disponible.')
+        return
+    end
+    if not frzCore:takeItem(src, 'barricade', 1) then
+        TriggerClientEvent('frz-craft:barricadeResult', src, false, 'Echec : barricade non consommee.')
+        return
+    end
+    TriggerClientEvent('frz-craft:barricadeResult', src, true)
+end)
+
+-- Refund au cas ou le client n'arrive pas a charger le prop apres qu'on a
+-- deja consomme l'item (crash streaming, kick reseau, etc).
+RegisterNetEvent('frz-craft:barricadeSpawnFailed', function()
+    local src = source
+    frzCore:giveItem(src, 'barricade', 1)
 end)

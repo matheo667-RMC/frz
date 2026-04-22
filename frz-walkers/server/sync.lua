@@ -17,7 +17,10 @@ RegisterNetEvent('frz-walkers:bite', function()
     if (now - (lastBiteAt[src] or 0)) < 1000 then return end
     lastBiteAt[src] = now
 
-    TriggerClientEvent('frz-survival:onBite', src)
+    -- Applique l'infection cote serveur (persistance immediate) plutot qu'en
+    -- client-only : frz-survival/server/bite.lua: applyBite appelle addStat
+    -- puis notifie le client des effets visuels.
+    exports['frz-survival']:applyBite(src)
 end)
 
 RegisterNetEvent('frz-walkers:walkerKilled', function()
