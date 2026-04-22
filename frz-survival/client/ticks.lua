@@ -31,12 +31,10 @@ local function applyTick()
     frzCore:setStatLocal('thirst',  thirst)
     frzCore:setStatLocal('fatigue', fatigue)
 
-    -- Infection : une fois infecte, elle progresse meme en mangeant / buvant.
-    local infection = stats.infection or 0
-    if infection > 0 then
-        infection = infection + FrzSurvival.Config.InfectionPerTick
-        frzCore:setStatLocal('infection', infection)
-    end
+    -- L'infection progresse cote SERVEUR (frz-survival/server/tick.lua) :
+    -- sinon le tick client rebumpait aussitot la valeur et les antibiotiques
+    -- etaient annules par le prochain pushStats. Le client reflete juste ce
+    -- que syncStats envoie.
 end
 
 CreateThread(function()

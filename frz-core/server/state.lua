@@ -58,27 +58,24 @@ end)
 -- Sync push : le client envoie son etat courant (ticks de faim/soif calcules
 -- cote client par frz-survival, pour eviter d'alourdir le serveur a 60 Hz).
 --
--- /!\ Race avec les stats que le serveur gere en autorite :
--- quand frz-walkers applique une morsure via addStat (0 -> 15 infection),
--- le syncStats correspondant peut arriver APRES un pushStats client qui
--- contient encore l'ancienne valeur (0). Sans protection, ca ecraserait
--- l'infection du serveur a 0 et la morsure serait perdue.
--- => pour les stats monotones-croissantes gerees cote serveur (infection),
---    on prend max(server, client) au lieu d'ecraser aveuglement.
-local SERVER_AUTHORITATIVE_INCREASING = { infection = true }
+-- /!\ L'infection est FULL server-authoritative : bites (frz-walkers),
+-- progression passive (frz-survival/server/tick.lua) et antibiotiques/medkits
+-- (frz-survival/server/consume.lua) passent tous par addStat. Le client ne
+-- fait que refleter syncStats, il ne push JAMAIS sa copie au serveur,
+-- sinon :
+--   - une valeur stale post-bite reset l'infection a l'ancienne valeur
+--   - un antibiotique (-50) est annule par le push client qui envoie encore
+--     l'ancienne valeur haute
+-- => on ignore purement et simplement infection dans pushStats.
+local CLIENT_PUSH_IGNORED = { infection = true }
 
 RegisterNetEvent('frz-core:pushStats', function(stats)
     local src = source
     local rec = getRecordForSource(src)
     if not rec or type(stats) ~= 'table' then return end
     for k, v in pairs(stats) do
-        if type(v) == 'number' and rec.stats[k] ~= nil then
-            local clamped = clamp(v, 0, 100)
-            if SERVER_AUTHORITATIVE_INCREASING[k] then
-                rec.stats[k] = math.max(rec.stats[k] or 0, clamped)
-            else
-                rec.stats[k] = clamped
-            end
+        if type(v) == 'number' and rec.stats[k] ~= nil and not CLIENT_PUSH_IGNORED[k] then
+            rec.stats[k] = clamp(v, 0, 100)
         end
     end
     FrzCore.Server.markDirty()
