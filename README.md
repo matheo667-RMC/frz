@@ -14,6 +14,7 @@ Ce dépôt est un **monorepo** : chaque sous-dossier est une ressource FiveM aut
 | `frz-loot` | Loot des bennes / poubelles / toolboxes / cartons du monde + fouille des corps de rôdeurs. Tables de loot configurables. |
 | `frz-craft` | Craft de bandages, kits de soin, batte cloutée, barricades, munitions. Menu chat `/craft`. |
 | `frz-safezones` | Zones refuges (LSIA, Paleto, Altruist camp) : pas de spawns de rôdeurs, regen lente HP + faim + soif, blips sur la map. |
+| `frz-intro` | Animation NUI « Bienvenue dans la Dead Zone » au premier spawn (fade + glitch + tagline). Pas de caméra ni d'avion, juste un overlay léger. |
 | `frz-rp-spawn` | **Optionnel** — spawn forcé à LSIA au premier join avec cinématique d'atterrissage d'avion. Désactivé par défaut pour laisser des spawns aléatoires plus cohérents avec le mode survie. |
 
 ## Installation
@@ -32,6 +33,7 @@ Ce dépôt est un **monorepo** : chaque sous-dossier est une ressource FiveM aut
    ensure frz-loot
    ensure frz-craft
    ensure frz-safezones
+   ensure frz-intro
    # ensure frz-rp-spawn  # optionnel : decommente pour activer le spawn LSIA cinematique
    ```
 3. (Optionnel mais conseillé) Installe les mods GTA V recommandés côté client pour le rendu : voir [`MODS.md`](MODS.md).
