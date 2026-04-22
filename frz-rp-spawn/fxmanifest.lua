@@ -2,8 +2,8 @@ fx_version 'cerulean'
 game 'gta5'
 
 name 'frz-rp-spawn'
-author 'FRZ'
-description 'FRZ RP - Spawn a LSIA au premier join, cinematique atterrissage avion, annonce vocale FR'
+author 'Dead Zone RP'
+description 'Dead Zone RP - Spawn a LSIA au premier join, cinematique atterrissage avion, annonce vocale FR'
 version '1.0.0'
 
 lua54 'yes'

@@ -1,0 +1,34 @@
+# =========================================================================
+# Dead Zone RP - Exemple de section server.cfg pour charger les ressources de survie.
+# Copie les lignes 'ensure' dans ton server.cfg existant (en plus de tes
+# autres ressources).
+#
+# Ordre important : frz-core DOIT etre demarre avant les autres ressources
+# car elles dependent de ses exports (inventaire, stats, notifications).
+# =========================================================================
+
+# Noyau partage - OBLIGATOIRE.
+ensure frz-core
+
+# Mecaniques de survie (faim / soif / fatigue / infection + HUD).
+ensure frz-survival
+
+# Rodeurs (zombies) + IA hostile.
+ensure frz-walkers
+
+# Loot des bennes / poubelles / corps de rodeurs.
+ensure frz-loot
+
+# Craft (bandages, medkits, barricades, munitions...).
+ensure frz-craft
+
+# Zones refuges (LSIA, Paleto, Altruist camp) - pas de rodeurs, regen lente.
+ensure frz-safezones
+
+# Intro "Bienvenue dans la Dead Zone" (NUI seulement, pas de camera).
+ensure frz-intro
+
+# NOTE : frz-rp-spawn est desactive par defaut (on laisse spawnmanager natif
+# gerer les spawns aleatoires, plus coherent avec un mode survival).
+# Decommente la ligne ci-dessous si tu veux recuperer la cinematique LSIA.
+# ensure frz-rp-spawn

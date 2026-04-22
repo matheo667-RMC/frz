@@ -1,4 +1,4 @@
--- FRZ RP - affichage banniere / title card / son atterrissage (NUI)
+-- Dead Zone RP - affichage banniere / title card / son atterrissage (NUI)
 FrzSpawn = FrzSpawn or {}
 
 function FrzSpawn.showAnnouncement(title, subtitle, playAudio)

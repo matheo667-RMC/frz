@@ -1,4 +1,4 @@
--- FRZ RP - Spawn resource configuration
+-- Dead Zone RP - Spawn resource configuration
 -- Modifie ces valeurs pour ajuster le comportement de la cinematique.
 
 Config = {}
@@ -46,11 +46,11 @@ Config.CinematicDuration = 12000
 Config.AnnouncementDuration = 17000
 
 -- Textes affiches.
-Config.TitleCardMain      = 'FRZ RP'
+Config.TitleCardMain      = 'Dead Zone RP'
 Config.TitleCardSub       = 'Los Santos International Airport'
-Config.WelcomeMessage     = 'Bienvenue sur FRZ RP'
+Config.WelcomeMessage     = 'Bienvenue sur Dead Zone RP'
 Config.WelcomeSubtitle    = 'Aeroport international de Los Santos'
-Config.WelcomeBackMessage = 'Content de vous revoir sur FRZ RP'
+Config.WelcomeBackMessage = 'Content de vous revoir sur Dead Zone RP'
 
 -- Si true, la cinematique complete sera rejouee a chaque connexion (debug).
 -- Si false (defaut), seul le premier join declenche la cinematique.

@@ -11,5 +11,6 @@ Thumbs.db
 # Logs
 *.log
 
-# Runtime-generated data (frz-rp-spawn persistence)
+# Runtime-generated data
 joined_players.json
+player_states.json
