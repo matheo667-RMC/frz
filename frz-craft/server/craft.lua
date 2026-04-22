@@ -69,6 +69,21 @@ end)
 -- Anti-spam barricades (1 request/sec par joueur, meme rule que les crafts).
 local lastBarricadeAt = {}
 
+-- Tracke les consommations de barricade en attente de confirmation client.
+-- Sans ce flag, un client pourrait spammer frz-craft:barricadeSpawnFailed
+-- pour recuperer des items gratos sans jamais avoir consomme de barricade.
+-- Chaque entree = timestamp de la consommation, auto-expire apres 15s
+-- (suffisamment long pour le streaming du prop + une marge reseau).
+local pendingBarricadeRefund = {}
+local REFUND_WINDOW_MS = 15000
+
+local function clearExpiredRefunds(src)
+    local t = pendingBarricadeRefund[src]
+    if t and (GetGameTimer() - t) > REFUND_WINDOW_MS then
+        pendingBarricadeRefund[src] = nil
+    end
+end
+
 -- Flow serveur-authoritatif : le client demande la pose, on valide + consomme
 -- l'item, on repond ok/fail. Le client ne spawn le prop reseau qu'apres ok.
 RegisterNetEvent('frz-craft:requestBarricade', function()
@@ -85,12 +100,33 @@ RegisterNetEvent('frz-craft:requestBarricade', function()
         TriggerClientEvent('frz-craft:barricadeResult', src, false, 'Echec : barricade non consommee.')
         return
     end
+    -- On vient bien de consommer 1 barricade : on autorise 1 refund eventuel.
+    pendingBarricadeRefund[src] = now
     TriggerClientEvent('frz-craft:barricadeResult', src, true)
 end)
 
 -- Refund au cas ou le client n'arrive pas a charger le prop apres qu'on a
--- deja consomme l'item (crash streaming, kick reseau, etc).
+-- deja consomme l'item (crash streaming, kick reseau, etc). Ne rembourse
+-- QUE si une consommation recente (<15s) n'a pas encore ete refundee,
+-- sinon un client pourrait appeler ce net event en boucle pour dupliquer.
 RegisterNetEvent('frz-craft:barricadeSpawnFailed', function()
     local src = source
+    clearExpiredRefunds(src)
+    if not pendingBarricadeRefund[src] then return end
+    pendingBarricadeRefund[src] = nil
     frzCore:giveItem(src, 'barricade', 1)
+end)
+
+-- Le client confirme le placement : on ferme la fenetre de refund pour
+-- empecher un refund frauduleux apres succes.
+RegisterNetEvent('frz-craft:barricadePlaced', function()
+    local src = source
+    pendingBarricadeRefund[src] = nil
+end)
+
+AddEventHandler('playerDropped', function()
+    local src = source
+    pendingBarricadeRefund[src] = nil
+    lastBarricadeAt[src] = nil
+    lastCraftAt[src] = nil
 end)

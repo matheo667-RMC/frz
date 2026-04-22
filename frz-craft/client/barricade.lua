@@ -44,6 +44,8 @@ local function spawnBarricadeProp()
     SetModelAsNoLongerNeeded(hash)
 
     placedBarricades[#placedBarricades + 1] = obj
+    -- Ferme la fenetre de refund cote serveur : placement reussi.
+    TriggerServerEvent('frz-craft:barricadePlaced')
     frzCore:notify('Barricade posee.')
 end
 
